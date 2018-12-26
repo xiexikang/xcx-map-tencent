@@ -12,7 +12,7 @@ Page({
     mapKey: "MKWBZ-IH53W-NGSRB-OTOS7-2SW52-AHBOI",  //地图的key
     markers: [],  //地图参数
     circles: [],  //区域
-    keysValue: '', //关键字
+    keysValue:"", //关键字
     latitude: "", //纬度 
     longitude: "",  //经度
     polyline: [],   //路线
@@ -23,22 +23,22 @@ Page({
     goWayIndex: 0,
     goWayArr: [
       {
-        id: 1,
+        id: 0,
         title: '驾车',
         name: 'driving'
       },
       {
-        id: 2,
+        id: 1,
         title: '步行',
         name: 'walking'
       },
       {
-        id: 3,
+        id: 2,
         title: '骑行',
         name: 'bicycling'
       },
       {
-        id: 4,
+        id: 3,
         title: '公交',
         name: 'transit'
       }
@@ -48,6 +48,8 @@ Page({
 
     addressTitle: '',//地址标题
     addressDes: '', //地址详细 
+    distance: '',  //距离: 起点到终点的距离，单位：米，
+    duration: '', //时间: 表示从起点到终点的结合路况的时间，秒为单位 注：步行方式不计算耗时，该值始终为0 
 
   },
 
@@ -103,14 +105,20 @@ Page({
   //搜索周边
   searchNearby(e) {
     let that = this,
-      keysValue = e.detail.value.keysValue;
+        keysValue = e.detail.value.keysValue;
+    if (keysValue == undefined || keysValue==""){
+      wx.showToast({
+        title: '请输入搜索地点',
+        icon:'none'
+      })
+      return
+    }
     that.setData({
       keysValue: keysValue
     });
-
     // 调用接口
     qqmapsdk.search({
-      keyword: that.data.keysValue,
+      keyword: keysValue,
       location: that.data.latitude + ',' + that.data.longitude, //以我的位置作为周边搜索中心点
       success(res) {
         // console.log(res);
@@ -156,9 +164,12 @@ Page({
         that.setData({
           tolatitude: v.latitude,
           tolongitude: v.longitude,
+          polyline: []    //清空路线
         })
       }
     })
+
+    that.getAddreeInfo(); //目的地地址信息
   },
 
   //点击地图poi点时触发 poi:位置标记 如：广州塔 
@@ -187,7 +198,14 @@ Page({
       markers: that.data.originMarkers.concat(poiMks),
       polyline: []    //清空路线
     })
+ 
+    that.getAddreeInfo(); //目的地地址信息
 
+  },
+
+  //目的地地址信息
+  getAddreeInfo(e){
+    var that = this;
     // 实例化API核心类
     var demo = new QQMapWX({
       key: that.data.mapKey // 必填
@@ -195,10 +213,10 @@ Page({
     // 调用接口
     demo.reverseGeocoder({
       location: {
-        latitude: e.detail.latitude,
-        longitude: e.detail.longitude,
+        latitude: that.data.tolatitude,
+        longitude: that.data.tolongitude,
       },
-      success: function (res) {
+      success(res) {
         //console.log(res);
         that.setData({
           addressTitle: res.result.address,
@@ -206,14 +224,15 @@ Page({
         })
 
       },
-      fail: function (res) {
+      fail(res) {
         //console.log(res);
       },
-      complete: function (res) {
+      complete(res) {
         //console.log(res);
       }
     });
 
+    that.getDistanceDuration(); //两地距离，时间
   },
 
   //出行方式
@@ -234,6 +253,7 @@ Page({
     })
 
     that.linePlanning();  //路线
+  
   },
 
   //路线规划 
@@ -278,7 +298,86 @@ Page({
       }
     };
     wx.request(opt);
+
+    that.getDistanceDuration(); //两地距离，时间
   },
+
+  //两地之间的距离,时间
+  getDistanceDuration(e) {
+    let that = this,
+      mapKey = that.data.mapKey,
+      trafficWay = that.data.trafficWay, //出行方式
+      fromMap = "", //始点
+      toMap = ""; //终点
+    wx.getLocation({
+      type: 'gcj02',
+      success(res) {
+        that.setData({
+          latitude: res.latitude,
+          longitude: res.longitude,
+        })
+        fromMap = that.data.latitude + ',' + that.data.longitude, //始点
+        toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
+
+        var opt2 = {
+          url: "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "",
+          method: 'GET',
+          dataType: 'json',
+          success(res) {
+            var distance, duration;
+              distance = res.data.result.elements["0"].distance;  //距离
+              duration = res.data.result.elements["0"].duration;  //时间
+
+            that.transformUnit(duration, distance); //转换单位
+          }
+        };
+        wx.request(opt2);
+      }
+
+    })
+  },
+
+
+  //转换单位：距离,时间
+  transformUnit(t, d) {
+    var that = this,
+      theTime = parseInt(t),// 秒
+      middle = 0,// 分
+      hour = 0,// 小时
+      duration = "",
+      distance = "";
+
+    //时间格式
+    if (theTime > 60) {
+      middle = parseInt(theTime / 60);
+      theTime = parseInt(theTime % 60);
+      if (middle > 60) {
+        hour = parseInt(middle / 60);
+        middle = parseInt(middle % 60);
+      }
+    }
+    var duration = "" + parseInt(theTime) + "秒";
+    if (middle > 0) {
+      duration = "" + parseInt(middle) + "分" + duration;
+    }
+    if (hour > 0) {
+      duration = "" + parseInt(hour) + "小时" + duration;
+    }
+
+    //距离格式
+    if (d < 1000) {
+      distance = d + "米"
+    } else if (d > 1000) {
+      distance = (Math.round(d / 100) / 10).toFixed(1) + "公里"
+    }
+
+    that.setData({
+      duration: duration,
+      distance: distance
+    })
+    return duration, distance;
+  },
+
 
   /**
    * 生命周期函数--监听页面加载

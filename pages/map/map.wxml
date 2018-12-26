@@ -6,8 +6,8 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
 
 <view class='ser-con'>
   <form bindsubmit="searchNearby" >
-    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue'></input>
-    <button class='btn'  form-type="submit" >搜索周边</button>
+    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' ></input>
+    <button class='btn'  form-type="submit"  >搜索周边</button>
   </form>
 </view>
 
@@ -26,5 +26,7 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   <view class='mod'>
     <view class='th'>{{addressTitle}}</view>
     <view class='des'>{{addressDes}}</view>
+    <label class='dura'>{{duration}}</label>
+    <label class='dist'>{{distance}}</label>
   </view> 
 </view>
