@@ -28,6 +28,18 @@ Page({
         that.setData({
           latitude: res.latitude,
           longitude: res.longitude,
+          originMarkers: [{
+            id: "0",
+            latitude: res.latitude,
+            longitude: res.longitude,
+            iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico.png",
+            width: 40,
+            height: 40,
+            callout: {
+              'display': 'ALWAYS', 'fontSize': '24rpx', 'content': '我的位置',
+              'padding': '4rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
+            }
+          }],
           markers: [{
             id: "0",
             latitude: res.latitude,
@@ -51,6 +63,49 @@ Page({
         })
       }
     })
+  },
+
+  //搜索周边
+  searchNearby(e) {
+    let that = this,
+      keysValue = e.detail.value.keysValue;
+    that.setData({
+      keysValue: keysValue
+    });
+
+    // 调用接口
+    qqmapsdk.search({
+      keyword: that.data.keysValue,
+      location: that.data.latitude + ',' + that.data.longitude, //以我的位置作为周边搜索中心点
+      success(res) {
+        // console.log(res);
+        var mks = []
+        for (var i = 0; i < res.data.length; i++) {
+          mks.push({ // 获取返回结果，放到mks数组中
+            title: res.data[i].title,
+            id: res.data[i].id,
+            latitude: res.data[i].location.lat,
+            longitude: res.data[i].location.lng,
+            iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico2.png", //图标路径
+            width: 30,
+            height: 30
+          })
+        }
+        //渲染markers
+        that.setData({
+          markers: that.data.originMarkers.concat(mks),
+          polyline: [] //清空路线
+        })
+
+      },
+      fail(res) {
+        console.log(res);
+      },
+      complete(res) {
+        // console.log(res);
+      }
+    });
+
   },
 
   /**

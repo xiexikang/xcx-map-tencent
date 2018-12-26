@@ -1,3 +1,9 @@
 /* pages/map/map.wxss */
 page{ background-color: #000;}
 #myMap{ width:100%; height:600rpx;}
+
+.ser-con{ width: 100%;  height: 80rpx;  padding: 0 30rpx; box-sizing: border-box;  margin: 30rpx 0;}
+.ser-con .btn{ width:30%; height: 80rpx; line-height: 80rpx; font-size: 28rpx; border-radius: 0; 
+background-color: #fff; float: right;}
+.ser-con .inp{ width:70%; height: 80rpx; padding: 0 15rpx; box-sizing: border-box; font-size: 28rpx; 
+ background-color:#f0f0f0;  float: left;}
