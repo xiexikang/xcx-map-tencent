@@ -12,6 +12,7 @@ Page({
     mapKey: "MKWBZ-IH53W-NGSRB-OTOS7-2SW52-AHBOI",  //地图的key
     markers: [],  //地图参数
     circles: [],  //区域
+    keysValue: '', //关键字
     latitude: "", //纬度 
     longitude: "",  //经度
     polyline: [],   //路线
