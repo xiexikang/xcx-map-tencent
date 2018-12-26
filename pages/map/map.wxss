@@ -1,0 +1,3 @@
+/* pages/map/map.wxss */
+page{ background-color: #000;}
+#myMap{ width:100%; height:600rpx;}
