@@ -43,6 +43,12 @@ Page({
         name: 'transit'
       }
     ], 
+
+    address: [], //地址列表
+
+    addressTitle: '',//地址标题
+    addressDes: '', //地址详细 
+
   },
 
   //获得地图

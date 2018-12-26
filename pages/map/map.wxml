@@ -20,3 +20,11 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   </view>
   <button type='button' class='btn'  bindtap="linePlanning">路线规划</button>
 </view>
+
+<view class='pio-tip'>pio建筑选中的地址：</view>
+<view class='pio-address'>
+  <view class='mod'>
+    <view class='th'>{{addressTitle}}</view>
+    <view class='des'>{{addressDes}}</view>
+  </view> 
+</view>
