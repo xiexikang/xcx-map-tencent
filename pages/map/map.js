@@ -16,6 +16,33 @@ Page({
     latitude: "", //纬度 
     longitude: "",  //经度
     polyline: [],   //路线
+    tolatitude: "", //目的地纬度
+    tolongitude: "", //目的地经度
+    trafficWay: "driving", //出行方式，用于接口切换 driving walking bicycling transit
+    //交通方式
+    goWayIndex: 0,
+    goWayArr: [
+      {
+        id: 1,
+        title: '驾车',
+        name: 'driving'
+      },
+      {
+        id: 2,
+        title: '步行',
+        name: 'walking'
+      },
+      {
+        id: 3,
+        title: '骑行',
+        name: 'bicycling'
+      },
+      {
+        id: 4,
+        title: '公交',
+        name: 'transit'
+      }
+    ], 
   },
 
   //获得地图
@@ -66,6 +93,7 @@ Page({
     })
   },
 
+
   //搜索周边
   searchNearby(e) {
     let that = this,
@@ -107,6 +135,88 @@ Page({
       }
     });
 
+  },
+
+
+  //点击标记点时触发
+  bindmarkertap(e) {
+    var that = this,
+      markerId = e.markerId,
+      markersArr = [],
+      markersArr = that.data.markers;
+    markersArr.forEach(function (v, i, array) {
+      let id = v.id
+      if (id == markerId) {
+        that.setData({
+          tolatitude: v.latitude,
+          tolongitude: v.longitude,
+        })
+      }
+    })
+  },
+
+  //出行方式
+  selGoWay(e) {
+    var that = this,
+      goWayArr = [],
+      goWayArr = that.data.goWayArr;
+    that.setData({
+      goWayIndex: e.detail.value,
+    })
+    goWayArr.forEach(function (v, i, array) {
+      let id = v.id
+      if (id == that.data.goWayIndex) {
+        that.setData({
+          trafficWay: v.name
+        })
+      }
+    })
+
+    that.linePlanning();  //路线
+  },
+
+  //路线规划 
+  linePlanning(e) {
+    let that = this,
+      mapKey = that.data.mapKey,
+      trafficWay = that.data.trafficWay, //出行方式
+      fromMap = that.data.latitude + ',' + that.data.longitude, //始点
+      toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
+    //网络请求设置
+    var opt = {
+      //WebService请求地址，from为起点坐标，to为终点坐标，开发key为必填
+      url: "https://apis.map.qq.com/ws/direction/v1/" + trafficWay + "/?from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "",
+      method: 'GET',
+      dataType: 'json',
+      //请求成功回调
+      success(res) {
+        //console.log(res);
+        var ret = res.data
+        if (ret.status != 0) return; //服务异常处理
+
+        var coors = ret.result.routes[0].polyline, pl = [];
+        //坐标解压（返回的点串坐标，通过前向差分进行压缩）
+        var kr = 1000000;
+        for (var i = 2; i < coors.length; i++) {
+          coors[i] = Number(coors[i - 2]) + Number(coors[i]) / kr;
+        }
+        //将解压后的坐标放入点串数组pl中
+        for (var i = 0; i < coors.length; i += 2) {
+          pl.push({ latitude: coors[i], longitude: coors[i + 1] })
+        }
+
+        //设置polyline属性，将路线显示出来
+        that.setData({
+          polyline: [{
+            points: pl,
+            color: '#FF0000DD',
+            width: 2,
+            arrowLine: true
+          }]
+        })
+      }
+    };
+    wx.request(opt);
   },
 
   /**
