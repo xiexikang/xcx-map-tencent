@@ -1,6 +1,6 @@
 <!--pages/map/map.wxml-->
 <map id="myMap" markers="{{markers}}"   latitude="{{latitude}}" longitude="{{longitude}}" 
-scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindmarkertap='bindmarkertap'  
+scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindmarkertap='bindmarkertap'   bindpoitap="bindpoitap" 
 >
 </map>
 

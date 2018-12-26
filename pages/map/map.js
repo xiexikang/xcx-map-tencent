@@ -155,6 +155,61 @@ Page({
     })
   },
 
+  //点击地图poi点时触发 poi:位置标记 如：广州塔 
+  bindpoitap(e) {
+    var that = this,
+      poiMks = [];
+    poiMks = [{
+      id: "11111",
+      latitude: e.detail.latitude,
+      longitude: e.detail.longitude,
+      iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico3.png",
+      width: 30,
+      height: 30,
+      callout: {
+        'display': 'ALWAYS', 'fontSize': '20rpx', 'content': e.detail.name,
+        'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
+      }
+    }],
+      that.setData({
+        tolatitude: e.detail.latitude,
+        tolongitude: e.detail.longitude
+      })
+
+    //渲染markers
+    that.setData({
+      markers: that.data.originMarkers.concat(poiMks),
+      polyline: []    //清空路线
+    })
+
+    // 实例化API核心类
+    var demo = new QQMapWX({
+      key: that.data.mapKey // 必填
+    });
+    // 调用接口
+    demo.reverseGeocoder({
+      location: {
+        latitude: e.detail.latitude,
+        longitude: e.detail.longitude,
+      },
+      success: function (res) {
+        //console.log(res);
+        that.setData({
+          addressTitle: res.result.address,
+          addressDes: res.result.formatted_addresses.recommend
+        })
+
+      },
+      fail: function (res) {
+        //console.log(res);
+      },
+      complete: function (res) {
+        //console.log(res);
+      }
+    });
+
+  },
+
   //出行方式
   selGoWay(e) {
     var that = this,
