@@ -358,8 +358,13 @@ Page({
         })
         fromMap = that.data.latitude + ',' + that.data.longitude, //始点
         toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
-
-        //console.log(toMap)
+        if (that.data.tolatitude == "" || that.data.tolongitude == ""){
+            wx.showToast({
+              icon:"none",
+              title: '请选择标记地点',
+            })
+            return
+        }
         let _url = "";
         //距离接口目前 mode仅支持 驾车和步行
         if (trafficWay == "bicycling" || trafficWay == "transit"){
