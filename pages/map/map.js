@@ -44,12 +44,15 @@ Page({
       }
     ], 
 
-    addressArr: [], //地址列表
+    addressTitle: '',//poi地址标题
+    addressDes: '', //poi地址详细 
+    distance: '',  //poi距离: 起点到终点的距离，单位：米，
+    duration: '', //poi时间: 表示从起点到终点的结合路况的时间，秒为单位 注：步行方式不计算耗时，该值始终为0 
 
-    addressTitle: '',//地址标题
-    addressDes: '', //地址详细 
-    distance: '',  //距离: 起点到终点的距离，单位：米，
-    duration: '', //时间: 表示从起点到终点的结合路况的时间，秒为单位 注：步行方式不计算耗时，该值始终为0 
+    addressArr: [], //多个地址的列表
+    multiToMap:[] , //存储多个地址终点
+
+    pioIsShow:false,  //pio模块是否展示
 
   },
 
@@ -143,14 +146,26 @@ Page({
             distance:"",
             duration:""
           })
-
         }
+
+        //多个地址终点
+        var multiToMap = "";
+        adr.map(function(v,i,array){
+          multiToMap += v.latitude + "," + v.longitude +";"
+        })
+        that.setData({
+          multiToMap: multiToMap.substring(0, multiToMap.length - 1)
+        })
+
         //渲染markers
         that.setData({
           markers: that.data.originMarkers.concat(mks),
           polyline: [], //清空路线
-          addressArr:adr
+          addressArr:adr,
+          pioIsShow: false
         })
+
+        that.getMultiDisDur();//搜索的地址列表
 
       },
       fail(res) {
@@ -161,7 +176,6 @@ Page({
       }
     });
 
-    that.getDistanceDuration22();//
 
   },
 
@@ -178,7 +192,8 @@ Page({
         that.setData({
           tolatitude: v.latitude,
           tolongitude: v.longitude,
-          polyline: []    //清空路线
+          polyline: [],    //清空路线
+          pioIsShow:false
         })
       }
     })
@@ -186,7 +201,7 @@ Page({
     that.getAddreeInfo(); //目的地地址信息
   },
 
-  //点击地图poi点时触发 poi:位置标记 如：广州塔 
+  //点击地图pio点时触发 pio:位置标记 如：广州塔 
   bindpoitap(e) {
     var that = this,
       poiMks = [];
@@ -204,7 +219,9 @@ Page({
     }],
       that.setData({
         tolatitude: e.detail.latitude,
-        tolongitude: e.detail.longitude
+        tolongitude: e.detail.longitude,
+        addressTitle:e.detail.name,
+        pioIsShow: true
       })
 
     //渲染markers
@@ -232,10 +249,9 @@ Page({
         longitude: that.data.tolongitude,
       },
       success(res) {
-        //console.log(res);
+        console.log(res);
         that.setData({
-          addressTitle: res.result.address,
-          addressDes: res.result.formatted_addresses.recommend
+          addressDes: res.result.address
         })
 
       },
@@ -323,10 +339,10 @@ Page({
     };
     wx.request(opt);
 
-    // that.getDistanceDuration(); //两地距离，时间
+    that.getDistanceDuration(); //两地距离，时间
   },
 
-  //两地之间的距离,时间 poi
+  //pio点两地之间的距离,时间
   getDistanceDuration(e) {
     let that = this,
       mapKey = that.data.mapKey,
@@ -360,7 +376,7 @@ Page({
           method: 'GET',
           dataType: 'json',
           success(res) {
-            console.log(res);
+            //console.log(res);
             var distance, duration;
               distance = res.data.result.elements["0"].distance;  //距离
               duration = res.data.result.elements["0"].duration;  //时间
@@ -373,8 +389,8 @@ Page({
     })
   },
 
-  //两地之间的距离,时间22
-  getDistanceDuration22(e) {
+  //搜索的地址列表 距离,时间
+  getMultiDisDur(e) {
     let that = this,
       mapKey = that.data.mapKey,
       trafficWay = that.data.trafficWay, //出行方式
@@ -390,23 +406,22 @@ Page({
         fromMap = that.data.latitude + ',' + that.data.longitude, //始点
         toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
 
-        var toMap2 = "";
-        toMap2 = "23.03044,113.1416;23.032623,113.140488;23.03292,113.15466"
+        var multiToMap = that.data.multiToMap;  //多个
 
-        //console.log(toMap)
         let _url = "";
         //距离接口目前 mode仅支持 驾车driving和步行waliking
         if (trafficWay == "bicycling" || trafficWay == "transit") {
           console.log("该接口占不支持骑行bicycling与公交transit");
           return
         } else {
-          _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap2 + "&key=" + mapKey + "";
+          _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + multiToMap + "&key=" + mapKey + "";
         }
         var opt3 = {
           url: _url,
           method: 'GET',
           dataType: 'json',
           success(res) {
+            //console.log(res);
             var elements = [];
             elements = res.data.result.elements;
             elements.map(function (v, i, array) {
