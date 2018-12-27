@@ -30,3 +30,14 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
     <label class='dist'>{{distance}}</label>
   </view> 
 </view>
+
+
+<view class='pio-tip'>搜索出的地址列表：</view>
+<view class='pio-address address-list'>
+  <block wx:for="{{addressArr}}" wx:for-item="v" wx:key="k">
+    <view class='mod'>
+      <view class='th'>{{v.title}}</view>
+        <view class='des'>{{v.address}}</view>
+    </view>
+  </block>
+</view>

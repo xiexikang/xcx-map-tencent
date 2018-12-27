@@ -44,7 +44,7 @@ Page({
       }
     ], 
 
-    address: [], //地址列表
+    addressArr: [], //地址列表
 
     addressTitle: '',//地址标题
     addressDes: '', //地址详细 
@@ -122,37 +122,34 @@ Page({
       location: that.data.latitude + ',' + that.data.longitude, //以我的位置作为周边搜索中心点
       success(res) {
         // console.log(res);
-        var mks = []
+        var mks = [], //存makers地标显示
+            adr = [];  //存地址信息
         for (var i = 0; i < res.data.length; i++) {
-          mks.push({ // 获取返回结果，放到mks数组中
-            title: res.data[i].title,
+          mks.push({ 
             id: res.data[i].id,
+            title: res.data[i].title,
             latitude: res.data[i].location.lat,
             longitude: res.data[i].location.lng,
             iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico2.png", //图标路径
             width: 30,
             height: 30
           })
+          adr.push({
+            id: res.data[i].id,
+            title: res.data[i].title,
+            address: res.data[i].address,
+            latitude: res.data[i].location.lat,
+            longitude: res.data[i].location.lng,
+            distance:"",
+            duration:""
+          })
 
-          var arr = new Array();
-          var a = res.data[i].location.lat,
-              b = res.data[i].location.lng;
-          arr.push(a);
-          arr.push(b);
-          var str = arr.join(",");
-
-          ss = str.split(","); 
-          console.log(str);
-          console.log(ss);
-        
         }
-
-        
-
         //渲染markers
         that.setData({
           markers: that.data.originMarkers.concat(mks),
-          polyline: [] //清空路线
+          polyline: [], //清空路线
+          addressArr:adr
         })
 
       },
@@ -163,6 +160,8 @@ Page({
         // console.log(res);
       }
     });
+
+    that.getDistanceDuration22();//
 
   },
 
@@ -213,7 +212,8 @@ Page({
       markers: that.data.originMarkers.concat(poiMks),
       polyline: []    //清空路线
     })
- 
+
+
     that.getAddreeInfo(); //目的地地址信息
 
   },
@@ -323,10 +323,10 @@ Page({
     };
     wx.request(opt);
 
-    that.getDistanceDuration(); //两地距离，时间
+    // that.getDistanceDuration(); //两地距离，时间
   },
 
-  //两地之间的距离,时间
+  //两地之间的距离,时间 poi
   getDistanceDuration(e) {
     let that = this,
       mapKey = that.data.mapKey,
@@ -360,6 +360,7 @@ Page({
           method: 'GET',
           dataType: 'json',
           success(res) {
+            console.log(res);
             var distance, duration;
               distance = res.data.result.elements["0"].distance;  //距离
               duration = res.data.result.elements["0"].duration;  //时间
@@ -369,6 +370,88 @@ Page({
         wx.request(opt2);
       }
 
+    })
+  },
+
+  //两地之间的距离,时间22
+  getDistanceDuration22(e) {
+    let that = this,
+      mapKey = that.data.mapKey,
+      trafficWay = that.data.trafficWay, //出行方式
+      fromMap = "", //始点
+      toMap = ""; //终点
+    wx.getLocation({
+      type: 'gcj02',
+      success(res) {
+        that.setData({
+          latitude: res.latitude,
+          longitude: res.longitude,
+        })
+        fromMap = that.data.latitude + ',' + that.data.longitude, //始点
+        toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
+
+        var toMap2 = "";
+        toMap2 = "23.03044,113.1416;23.032623,113.140488;23.03292,113.15466"
+
+        //console.log(toMap)
+        let _url = "";
+        //距离接口目前 mode仅支持 驾车driving和步行waliking
+        if (trafficWay == "bicycling" || trafficWay == "transit") {
+          console.log("该接口占不支持骑行bicycling与公交transit");
+          return
+        } else {
+          _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap2 + "&key=" + mapKey + "";
+        }
+        var opt3 = {
+          url: _url,
+          method: 'GET',
+          dataType: 'json',
+          success(res) {
+            var elements = [];
+            elements = res.data.result.elements;
+            elements.map(function (v, i, array) {
+              //----单位换算------：
+              // //时间格式
+              var theTime = parseInt(v.duration),// 秒
+                  middle = 0,
+                  hour = 0;
+              if (theTime > 60) {
+                middle = parseInt(theTime / 60);
+                theTime = parseInt(theTime % 60);
+                if (middle > 60) {
+                  hour = parseInt(middle / 60);
+                  middle = parseInt(middle % 60);
+                }
+              }
+              v.duration = "" + parseInt(theTime) + "秒";
+              if (middle > 0) {
+                v.duration = "" + parseInt(middle) + "分" + v.duration;
+              }
+              if (hour > 0) {
+                v.duration = "" + parseInt(hour) + "小时" + v.duration;
+              } 
+              //距离格式
+              if (v.distance < 1000) {
+                v.distance = v.distance + "米"
+              } else if (v.distance> 1000) {
+                v.distance = (Math.round(v.distance / 100) / 10).toFixed(1) + "公里"
+              }
+
+
+              //匹配对应
+              var addr = that.data.addressArr;
+              addr[i].duration = v.duration;
+              addr[i].distance = v.distance;
+
+              //设置地址列表
+              that.setData({
+                addressArr:addr
+              })
+            });
+          }
+        };
+        wx.request(opt3);
+      }
     })
   },
 
@@ -410,6 +493,7 @@ Page({
       duration: duration,
       distance: distance
     })
+
     return duration, distance;
   },
 
