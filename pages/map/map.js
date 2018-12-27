@@ -24,23 +24,23 @@ Page({
     goWayArr: [
       {
         id: 0,
-        title: '驾车',
-        name: 'driving'
+        title: "驾车",
+        name: "driving"
       },
       {
         id: 1,
-        title: '步行',
-        name: 'walking'
+        title: "步行",
+        name: "walking"
       },
       {
         id: 2,
-        title: '骑行',
-        name: 'bicycling'
+        title: "骑行",
+        name: "bicycling"
       },
       {
         id: 3,
-        title: '公交',
-        name: 'transit'
+        title: "公交",
+        name: "transit"
       }
     ], 
 
@@ -133,7 +133,22 @@ Page({
             width: 30,
             height: 30
           })
+
+          var arr = new Array();
+          var a = res.data[i].location.lat,
+              b = res.data[i].location.lng;
+          arr.push(a);
+          arr.push(b);
+          var str = arr.join(",");
+
+          ss = str.split(","); 
+          console.log(str);
+          console.log(ss);
+        
         }
+
+        
+
         //渲染markers
         that.setData({
           markers: that.data.originMarkers.concat(mks),
@@ -263,15 +278,24 @@ Page({
       trafficWay = that.data.trafficWay, //出行方式
       fromMap = that.data.latitude + ',' + that.data.longitude, //始点
       toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
+
+    // transit公车接口参数不一样
+    var _url = "";
+    if (trafficWay == "transit") {
+      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&policy=LEAST_TIME&output=jsonp&callback=callback_function&key=" + mapKey + "";
+    } else {
+      _url = "https://apis.map.qq.com/ws/direction/v1/"+trafficWay+"/?&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
+    }
+
     //网络请求设置
     var opt = {
       //WebService请求地址，from为起点坐标，to为终点坐标，开发key为必填
-      url: "https://apis.map.qq.com/ws/direction/v1/" + trafficWay + "/?from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "",
+      url: _url,
       method: 'GET',
       dataType: 'json',
       //请求成功回调
       success(res) {
-        //console.log(res);
+        console.log(res);
         var ret = res.data
         if (ret.status != 0) return; //服务异常处理
 
@@ -319,15 +343,26 @@ Page({
         fromMap = that.data.latitude + ',' + that.data.longitude, //始点
         toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
 
+        //console.log(toMap)
+        let _url = "";
+        //距离接口目前 mode仅支持 驾车和步行
+        if (trafficWay == "bicycling" || trafficWay == "transit"){
+            that.setData({
+              duration:"未知时间",
+              distance:"未知距离"
+            })
+            return
+        }else{
+          _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
+        }
         var opt2 = {
-          url: "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "",
+          url: _url,
           method: 'GET',
           dataType: 'json',
           success(res) {
             var distance, duration;
               distance = res.data.result.elements["0"].distance;  //距离
               duration = res.data.result.elements["0"].duration;  //时间
-
             that.transformUnit(duration, distance); //转换单位
           }
         };
