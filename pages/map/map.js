@@ -52,9 +52,56 @@ Page({
     addressArr: [], //多个地址的列表
     multiToMap:[] , //存储多个地址终点
 
+    adrIsShow:false, //地址列表是否展示
     pioIsShow:false,  //pio模块是否展示
 
+    isPioAdrPopping: false,//pio地址是否弹出
+    pioAdrAnimPlus: {},//pio地址动画
+
+    isLinePoping: false, //出行-路线模块地址是否弹出
+    lineAnimPlus: {},//路线动画
+
   },
+
+  //出行-路线弹出动画
+  linePopp() {
+    let that = this;
+    var lineAnimPlus = wx.createAnimation({
+      duration: 300,
+      timingFunction: 'ease-out'
+    })
+    lineAnimPlus.opacity(1).step(0).scale(1,1).step(1);
+    that.setData({
+      lineAnimPlus: lineAnimPlus.export(),
+    })
+  },
+
+ 
+  //pioAdr弹出动画
+  pioAdrPopp() {
+    let that = this;
+    var pioAdrAnimPlus = wx.createAnimation({
+      duration: 300,
+      timingFunction: 'ease-out'
+    })
+    pioAdrAnimPlus.bottom(0).step();
+    that.setData({
+      pioAdrAnimPlus: pioAdrAnimPlus.export(),
+    })
+  },
+  //pioAdr收回动画
+  pioAdrTakeback() {
+    let that = this;
+    var pioAdrAnimPlus = wx.createAnimation({
+      duration: 500,
+      timingFunction: 'ease-out'
+    })
+    pioAdrAnimPlus.bottom(-250+'rpx').step();
+    that.setData({
+      pioAdrAnimPlus: pioAdrAnimPlus.export(),
+    })
+  },
+
 
   //获得地图
   getMyMapLocation(e) {
@@ -87,23 +134,22 @@ Page({
             width: 40,
             height: 40,
             callout: {
-              'display': 'ALWAYS', 'fontSize': '30rpx', 'content': '我的位置',
-              'padding': '8rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '4rpx'
+              'display': 'ALWAYS', 'fontSize': '26rpx', 'content': '我的位置',
+              'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
             }
           }],
           circles: [{
             latitude: res.latitude,
             longitude: res.longitude,
             fillColor: '#7cb5ec88',
-            color: '#7cb5ec88',
-            radius: 500,
+            color: 'transparent',
+            radius: 1000,
             strokeWidth: 1
           }],
         })
       }
     })
   },
-
 
   //搜索周边
   searchNearby(e) {
@@ -157,15 +203,18 @@ Page({
           multiToMap: multiToMap.substring(0, multiToMap.length - 1)
         })
 
-        //渲染markers
+       
         that.setData({
-          markers: that.data.originMarkers.concat(mks),
+          markers: that.data.originMarkers.concat(mks),  //渲染markers
           polyline: [], //清空路线
           addressArr:adr,
-          pioIsShow: false
+          pioIsShow:false,
+          adrIsShow:true
         })
 
         that.getMultiDisDur();//搜索的地址列表
+
+        that.linePopp(); //出行-路线动画
 
       },
       fail(res) {
@@ -199,6 +248,8 @@ Page({
     })
 
     that.getAddreeInfo(); //目的地地址信息
+
+    that.linePopp(); //出行-路线动画
   },
 
   //点击地图pio点时触发 pio:位置标记 如：广州塔 
@@ -221,7 +272,8 @@ Page({
         tolatitude: e.detail.latitude,
         tolongitude: e.detail.longitude,
         addressTitle:e.detail.name,
-        pioIsShow: true
+        pioIsShow:true,
+        adrIsShow:false
       })
 
     //渲染markers
@@ -232,7 +284,14 @@ Page({
 
 
     that.getAddreeInfo(); //目的地地址信息
+    
+    //pio动画
+    that.pioAdrPopp();
+    that.setData({
+      isPioAdrPopping: true
+    })
 
+    that.linePopp(); //出行-路线动画
   },
 
   //目的地地址信息
@@ -249,7 +308,7 @@ Page({
         longitude: that.data.tolongitude,
       },
       success(res) {
-        console.log(res);
+        //console.log(res);
         that.setData({
           addressDes: res.result.address
         })
@@ -311,7 +370,7 @@ Page({
       dataType: 'json',
       //请求成功回调
       success(res) {
-        console.log(res);
+       // console.log(res);
         var ret = res.data
         if (ret.status != 0) return; //服务异常处理
 
@@ -467,6 +526,7 @@ Page({
               that.setData({
                 addressArr:addr
               })
+
             });
           }
         };

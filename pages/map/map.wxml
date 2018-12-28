@@ -1,18 +1,20 @@
 <!--pages/map/map.wxml-->
+
+<!-- 搜索模块 -->
+<view class='ser-con'>
+  <form bindsubmit="searchNearby" >
+    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' ></input>
+    <button class='btn'  form-type="submit">搜索</button>
+  </form>
+</view>
+
 <map id="myMap" markers="{{markers}}"   latitude="{{latitude}}" longitude="{{longitude}}" 
 scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindmarkertap='bindmarkertap'   bindpoitap="bindpoitap" 
 >
 </map>
 
-<view class='ser-con'>
-  <form bindsubmit="searchNearby" >
-    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' ></input>
-    <button class='btn'  form-type="submit"  >搜索周边</button>
-  </form>
-</view>
-
-<view class='line-tip'>先输入(如：KFC)-搜索：会出现点，点中其中一个出现的点，然后可以选择出行方式，点击路线规划：</view>
-<view class='line-planning'>
+<!-- 路线规划 -->
+<view class='line-planning'  animation="{{lineAnimPlus}}" >
   <view class='sel-way'>
     <picker class='picker' bindchange="selGoWay" value="{{goWayIndex}}" range="{{goWayArr}}" range-key='title'>
       <view class="ti">选择出行方式：<label class='mm'>{{goWayArr[goWayIndex].title}}</label></view>
@@ -21,23 +23,10 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   <button type='button' class='btn'  bindtap="linePlanning">路线规划</button>
 </view>
 
-<!-- pio建筑选中的地址： -->
-<view class='address-container'>
-  <view class='address-thead pio-head'>pio建筑选中的地址：(用手机才能点击pio)</view>
-  <view class='address-list pio-address' wx:if="{{pioIsShow}}">
-    <view class='mod'>
-      <view class='th'>{{addressTitle}}</view>
-      <view class='des'>{{addressDes}}</view>
-      <label class='dura'>{{duration}}</label>
-      <label class='dist'>{{distance}}</label>
-    </view> 
-  </view>
-</view>
-
 <!-- 搜索出的地址列表： -->
-<view class='address-container'>
+<view class='address-container' wx:if="{{adrIsShow}}">
   <view class='address-thead'>搜索出的地址列表：</view>
-  <view class='address-list' wx:if="{{!pioIsShow}}">
+  <view class='address-list' >
     <block wx:for="{{addressArr}}" wx:for-item="v" wx:key="k">
       <view class='mod'>
         <view class='th'>{{v.title}}</view>
@@ -48,3 +37,20 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
     </block>
   </view>
 </view>
+
+<!-- pio建筑选中的地址： -->
+<view class='pio-address-info' animation="{{pioAdrAnimPlus}}" wx:if="{{pioIsShow}}">
+  <view class='in'>
+    <view class='tio'>{{addressTitle}}</view>
+    <view class='tcon'>
+      <label class='dist'>{{distance}}</label>
+      <i class="i"></i>
+      <view class='des'>{{addressDes}}</view>
+    </view>
+    <view class='to-hear'>
+      <icon class='i' style="background-image:url('https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/i-car.png')"></icon>
+      <label class='ti'>到这去</label>
+    </view>
+  </view>
+</view>
+
