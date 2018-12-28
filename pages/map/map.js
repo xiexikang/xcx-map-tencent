@@ -273,7 +273,7 @@ Page({
         tolongitude: e.detail.longitude,
         addressTitle:e.detail.name,
         pioIsShow:true,
-        adrIsShow:false
+        adrIsShow:false,
       })
 
     //渲染markers
@@ -292,6 +292,12 @@ Page({
     })
 
     that.linePopp(); //出行-路线动画
+  },
+
+  // pio到这里
+  bindPioTohear(e){
+    var that = this;
+    that.linePlanning();
   },
 
   //目的地地址信息
@@ -342,7 +348,7 @@ Page({
       }
     })
 
-    that.linePlanning();  //路线
+   that.linePlanning();  //路线
   
   },
 
@@ -357,7 +363,8 @@ Page({
     // transit公车接口参数不一样
     var _url = "";
     if (trafficWay == "transit") {
-      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&policy=LEAST_TIME&output=jsonp&callback=callback_function&key=" + mapKey + "";
+      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&policy=LEAST_TIME&output=json&callback=cb&key=" + mapKey + "";
+      
     } else {
       _url = "https://apis.map.qq.com/ws/direction/v1/"+trafficWay+"/?&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
     }
@@ -370,20 +377,73 @@ Page({
       dataType: 'json',
       //请求成功回调
       success(res) {
-       // console.log(res);
+        //  console.log(res);    
         var ret = res.data
+    
         if (ret.status != 0) return; //服务异常处理
 
-        var coors = ret.result.routes[0].polyline, pl = [];
-        //坐标解压（返回的点串坐标，通过前向差分进行压缩）
-        var kr = 1000000;
-        for (var i = 2; i < coors.length; i++) {
-          coors[i] = Number(coors[i - 2]) + Number(coors[i]) / kr;
+        var pl = [];
+       
+        if (trafficWay == "transit") {
+          // var coors2 = ret.result.routes[0].steps[0].polyline;
+
+          var coors2 = [],
+              routes = [];
+          routes = ret.result.routes;
+
+          routes.map(function(v,i,array){
+            var steps = [];
+            steps = v.steps
+            steps.forEach(function(x,i){
+              var polyline;
+              if (x.mode =="TRANSIT") {
+                coors2.push(x.lines[0].polyline)
+              }else{
+                coors2.push(x.polyline)
+              }
+            })
+          
+          })
+          
+          // console.log(coors2)
+          // console.log(coors2.length)
+
+          // return
+    
+          console.log(coors2)
+
+       
+          return
+
+          var kr = 1000000;
+          for (var i = 2; i < coors2.length; i++) {
+              
+            coors2[i] = Number(coors2[i - 2]) + Number(coors2[i]) / kr;
+          }
+          //将解压后的坐标放入点串数组pl中
+          for (var i = 0; i < coors2.length; i += 2) {
+            pl.push({ latitude: coors2[i], longitude: coors2[i + 1] })
+          }
+
+          // console.log(pl);
+
+        }else{
+           //阶段路线点串(该点串经过压缩，解压请参考：polyline 坐标解压)
+          var coors = ret.result.routes[0].polyline;
+          //坐标解压（返回的点串坐标，通过前向差分进行压缩）
+          var kr = 1000000;
+          for (var i = 2; i < coors.length; i++) {
+            coors[i] = Number(coors[i - 2]) + Number(coors[i]) / kr;
+          }
+          //将解压后的坐标放入点串数组pl中
+          for (var i = 0; i < coors.length; i += 2) {
+            pl.push({ latitude: coors[i], longitude: coors[i + 1] })
+          }
+
+          console.log(pl);
         }
-        //将解压后的坐标放入点串数组pl中
-        for (var i = 0; i < coors.length; i += 2) {
-          pl.push({ latitude: coors[i], longitude: coors[i + 1] })
-        }
+
+       
 
         //设置polyline属性，将路线显示出来
         that.setData({
@@ -394,6 +454,8 @@ Page({
             arrowLine: true
           }]
         })
+
+     
       }
     };
     wx.request(opt);

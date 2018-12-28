@@ -43,11 +43,14 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   <view class='in'>
     <view class='tio'>{{addressTitle}}</view>
     <view class='tcon'>
-      <label class='dist'>{{distance}}</label>
-      <i class="i"></i>
       <view class='des'>{{addressDes}}</view>
+      <view class='bot'>
+        <label class='dist'>{{distance}}</label>
+         <i class="i"></i>
+        <label class='dura'>{{duration}}</label>
+      </view>
     </view>
-    <view class='to-hear'>
+    <view class='to-hear' bindtap='bindPioTohear'>
       <icon class='i' style="background-image:url('https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/i-car.png')"></icon>
       <label class='ti'>到这去</label>
     </view>

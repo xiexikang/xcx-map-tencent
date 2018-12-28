@@ -12,7 +12,6 @@ position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
 .ser-con .inp{ width:80%; height: 80rpx; padding: 0 20rpx; box-sizing: border-box; font-size: 28rpx; 
 background-color: #fff; float: left;}
 
-.line-tip{ width: 100%; padding: 20rpx; box-sizing: border-box; color: #fff; font-size: 24rpx;}
 
 .line-planning{ width: 100%; height: 80rpx; padding: 0 30rpx; box-sizing: border-box; margin-top: 30rpx;
   transform: scale(0); opacity: 0;
@@ -33,22 +32,22 @@ font-size: 28rpx; border-bottom: 1px solid #f0f0f0; background-color: rgb(93, 14
 .address-list .mod .dist{ position: absolute; right: 20rpx; bottom:20rpx; font-size: 22rpx; color: #999;}
 .address-list .mod .dura{ position: absolute; right: 20rpx; top:20rpx; font-size: 22rpx; color: #999;}
 
-.pio-head{background-color: rgb(247, 90, 63); }
-.pio-address .mod .des{ min-height: auto;}
-
 
 .pio-address-info{ width: 100%; height: 200rpx; background-color: #fff; border-top: 1px solid #f0f0f0; box-sizing: border-box;
  position: fixed; left: 0;  z-index: 2; bottom: -250rpx;}
 .pio-address-info .in{ padding: 30rpx;}
 .pio-address-info .tio{ font-size: 30rpx; font-weight: 700; color: #000; margin-bottom: 10rpx;}
-.pio-address-info .tcon{ width: 100%; height: 40rpx; line-height: 40rpx; font-size: 24rpx; color: #333; overflow: hidden; text-overflow:ellipsis; white-space: nowrap;}
-.pio-address-info .tcon .dist{ float: left; }
-.pio-address-info .tcon .i{ width: 1px; height: 50%; background-color: #ccc; float: left; margin: 10rpx 20rpx;}
-.pio-address-info .tcon .des{ float: left;}
+.pio-address-info .tcon{ width: 100%; font-size: 24rpx; color: #333; overflow: hidden; }
+.pio-address-info .tcon .des{ width: 100%; height: 40rpx; line-height: 40rpx;  overflow: hidden; 
+text-overflow:ellipsis; white-space: nowrap;}
+.pio-address-info .tcon .bot{ width: 100%;  height: 40rpx; line-height: 40rpx; color: #999; }
+.pio-address-info .tcon .bot .dist{ float: left; }
+.pio-address-info .tcon .bot .dura{ float: left; }
+.pio-address-info .tcon .bot .i{ width: 1px; height: 50%; background-color: #ccc; float: left; margin: 10rpx 20rpx;}
+
 .pio-address-info .to-hear{ width: 100rpx; height: 100rpx; background-color: rgb(51, 125, 236); border-radius: 50%;
   position: absolute; right: 40rpx; top: -50rpx;   text-align: center; }
 .pio-address-info .to-hear .i{ width: 36rpx; height: 36rpx; background-size: contain; background-repeat: no-repeat;
  display: inline-block; margin-top: 12rpx;}
 .pio-address-info .to-hear .ti{ color: #fff; font-size:22rpx; display: block; line-height: 1;}
 
-.xx{  background-color: #f00; }
