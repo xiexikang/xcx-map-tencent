@@ -349,8 +349,6 @@ Page({
     })
 
    that.linePlanning();  //路线
-
-    that.getMultiDisDur();
   
   },
 
@@ -365,7 +363,7 @@ Page({
     // transit公车接口参数不一样
     var _url = "";
     if (trafficWay == "transit") {
-      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&policy=LEAST_WALKING,NO_SUBWAY&output=json&callback=cb&key=" + mapKey + "";
+      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&LEAST_TIME&output=json&callback=cb&key=" + mapKey + "";
       
     } else {
       _url = "https://apis.map.qq.com/ws/direction/v1/"+trafficWay+"/?&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
@@ -506,18 +504,14 @@ Page({
           method: 'GET',
           dataType: 'json',
           success(res) {
-            //console.log(res);
             var distance, duration;
-              distance = res.data.result.elements["0"].distance;  //距离
-              duration = res.data.result.elements["0"].duration;  //时间
+            var elements = [];
+            elements = res.data.result.elements[0]
+            distance = elements.distance;  //距离
+            duration = elements.duration;  //时间
+
             that.transformUnit(duration, distance); //转换单位
 
-            if (trafficWay =="wallking"){
-                that.setData({
-                  duration: "注：步行方式不计算耗时，该值始终为0",
-                })
-            }
-            
           }
         };
         wx.request(opt2);
@@ -636,6 +630,10 @@ Page({
       hour = 0,// 小时
       duration = "",
       distance = "";
+
+    if (theTime==0){
+      duration = 0
+    }
 
     //时间格式
     if (theTime > 60) {
