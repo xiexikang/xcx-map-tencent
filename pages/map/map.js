@@ -363,7 +363,7 @@ Page({
     // transit公车接口参数不一样
     var _url = "";
     if (trafficWay == "transit") {
-      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&policy=LEAST_TIME&output=json&callback=cb&key=" + mapKey + "";
+      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&policy=LEAST_WALKING,NO_SUBWAY&output=json&callback=cb&key=" + mapKey + "";
       
     } else {
       _url = "https://apis.map.qq.com/ws/direction/v1/"+trafficWay+"/?&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
@@ -377,55 +377,57 @@ Page({
       dataType: 'json',
       //请求成功回调
       success(res) {
-        //  console.log(res);    
+        // console.log(res);    
         var ret = res.data
     
         if (ret.status != 0) return; //服务异常处理
 
-        var pl = [];
+        var pl = [];  // map的polyline参数坐标数组
        
         if (trafficWay == "transit") {
-          // var coors2 = ret.result.routes[0].steps[0].polyline;
-
-          var coors2 = [],
+          //
+          var coors = [],  //阶段路线点串
               routes = [];
-          routes = ret.result.routes;
-
-          routes.map(function(v,i,array){
-            var steps = [];
-            steps = v.steps
-            steps.forEach(function(x,i){
-              var polyline;
-              if (x.mode =="TRANSIT") {
-                coors2.push(x.lines[0].polyline)
-              }else{
-                coors2.push(x.polyline)
-              }
-            })
-          
+          // routes = ret.result.routes; //路线方案
+          routes = ret.result.routes[0]; //路线方案:返回了几个方案，占时先选择方案1
+          var steps = [];
+              steps = routes.steps;     //路线过程
+          steps.forEach(function (x, i) {
+            var polyline;
+            if (x.mode == "TRANSIT") {
+              coors.push(x.lines[0].polyline)
+            } else {
+              coors.push(x.polyline)
+            }
           })
-          
-          // console.log(coors2)
-          // console.log(coors2.length)
 
-          // return
-    
-          console.log(coors2)
+          //过滤掉返回undefinded的数据
+          var coors2 = coors.filter((k) => k != undefined)
 
-       
-          return
+        //重新数组
+         var newCoors =  coors2.map(function(v){
+            //  console.log(v)
+           var arr = [];  //存数组
+           // 坐标解压
+           var kr = 1000000;
+           for (var i = 2; i < v.length; i++) {
+             v[i] = Number(v[i - 2]) + Number(v[i]) / kr;
+             var values = "";
+             values = v[i];
+             arr.push(values);
+           }
+            return arr
+          })
 
-          var kr = 1000000;
-          for (var i = 2; i < coors2.length; i++) {
-              
-            coors2[i] = Number(coors2[i - 2]) + Number(coors2[i]) / kr;
-          }
+          //多个合成一个数组
+          var newCoors2 = newCoors.reduce((v1, v2) => v1.concat(v2), [])
+     
           //将解压后的坐标放入点串数组pl中
-          for (var i = 0; i < coors2.length; i += 2) {
-            pl.push({ latitude: coors2[i], longitude: coors2[i + 1] })
+          for (var y = 0; y< newCoors2.length; y += 2) {
+            pl.push({ latitude: newCoors2[y], longitude: newCoors2[y + 1] })
           }
 
-          // console.log(pl);
+          //  console.log(pl);
 
         }else{
            //阶段路线点串(该点串经过压缩，解压请参考：polyline 坐标解压)
@@ -440,11 +442,10 @@ Page({
             pl.push({ latitude: coors[i], longitude: coors[i + 1] })
           }
 
-          console.log(pl);
+          // console.log(pl);
         }
 
        
-
         //设置polyline属性，将路线显示出来
         that.setData({
           polyline: [{
