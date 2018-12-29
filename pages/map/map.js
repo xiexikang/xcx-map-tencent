@@ -349,6 +349,8 @@ Page({
     })
 
    that.linePlanning();  //路线
+
+    that.getMultiDisDur();
   
   },
 
@@ -490,11 +492,12 @@ Page({
         let _url = "";
         //距离接口目前 mode仅支持 驾车和步行
         if (trafficWay == "bicycling" || trafficWay == "transit"){
-            that.setData({
-              duration:"未知时间",
-              distance:"未知距离"
-            })
-            return
+          console.log("该接口占不支持骑行bicycling与公交transit");
+          that.setData({
+            duration: "未知时间",
+            distance: "未知距离"
+          })
+          return
         }else{
           _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
         }
@@ -508,6 +511,13 @@ Page({
               distance = res.data.result.elements["0"].distance;  //距离
               duration = res.data.result.elements["0"].duration;  //时间
             that.transformUnit(duration, distance); //转换单位
+
+            if (trafficWay =="wallking"){
+                that.setData({
+                  duration: "注：步行方式不计算耗时，该值始终为0",
+                })
+            }
+            
           }
         };
         wx.request(opt2);
@@ -539,6 +549,15 @@ Page({
         //距离接口目前 mode仅支持 驾车driving和步行waliking
         if (trafficWay == "bicycling" || trafficWay == "transit") {
           console.log("该接口占不支持骑行bicycling与公交transit");
+          var addressArr =[];
+          addressArr = that.data.addressArr;
+          addressArr.forEach(function(v){
+            v.duration = "接口不支持：未知时间"
+            v.distance = "接口不支持：未知距离"
+          })
+          that.setData({
+            addressArr: addressArr
+          })
           return
         } else {
           _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + multiToMap + "&key=" + mapKey + "";
@@ -579,6 +598,9 @@ Page({
                 v.distance = (Math.round(v.distance / 100) / 10).toFixed(1) + "公里"
               }
 
+              if (trafficWay == "walking" ){
+                v.duration = "接口不支持：未知时间"
+              } 
 
               //匹配对应
               var addr = that.data.addressArr;
@@ -589,6 +611,13 @@ Page({
               that.setData({
                 addressArr:addr
               })
+
+
+              if (trafficWay == "wallking") {
+                that.setData({
+                  duration: "注：步行方式不计算耗时，该值始终为0",
+                })
+              }
 
             });
           }

@@ -3,7 +3,7 @@
 <!-- 搜索模块 -->
 <view class='ser-con'>
   <form bindsubmit="searchNearby" >
-    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' ></input>
+    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue'></input>
     <button class='btn'  form-type="submit">搜索</button>
   </form>
 </view>
