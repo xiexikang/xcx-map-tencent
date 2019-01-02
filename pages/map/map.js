@@ -92,107 +92,10 @@ Page({
     classifyClassId:0,
     classifyClassName:"美食",
 
-  },
-
-  //选择搜索分类
-  chooseClassify(e){
-    let that = this,
-      id = e.currentTarget.dataset.id;
-      that.setData({
-        classifyClassId:id
-      })
-    const classifyClassArr = that.data.classifyClassArr;
-    classifyClassArr.forEach(function(v,i){
-      if (i == id ){
-        that.setData({
-          classifyClassName: v.name,
-          keysValue:v.name,
-          searchTipsArr: [], //清空提示
-          adrIsShow:true,
-          polyline: [],    //清空路线
-          tolatitude:"",
-          tolongitude:"",
-        })
-        that.serachkeywords(v.name); //搜索关键字    
-        that.getMultiDisDur(); //地址列表信息
-      }
-    })
-  },
-
-  //输入关键字的补完与提示
-  bindSearchInput(e){
-    let that = this,
-        mapKey = that.data.mapKey,
-        keyword = that.data.classifyClassName,
-        v = e.detail.value,
-        _url = "";
-      
-        keyword = v;
-
-    if (v == "" || v == undefined) {
-      that.setData({
-        searchTipsArr: [],
-        adrIsShow:false,
-        addressArr:[],
-      })
-      return
-    }
-
-    // 关键字的补完与提示接口
-    _url = "https://apis.map.qq.com/ws/place/v1/suggestion/?region=佛山&keyword=" + keyword + "&key=" + mapKey + "";
-    var opt4 = {
-      url: _url,
-      method: 'GET',
-      dataType: 'json',
-      success(res) {
-        // console.log(res)
-        that.setData({
-          searchTipsArr: res.data.data,
-        })
-      }
-    }
-    wx.request(opt4);
-   
-  },
-
-  // 选择提示出的列表的地址
-  chooseSerTip(e){
-    let that = this,
-      title = e.currentTarget.dataset.title,
-      lat = e.currentTarget.dataset.lat,
-      lng = e.currentTarget.dataset.lng;
-      //console.log(lat+','+lng);
-      that.setData({
-        tolatitude:lat,
-        tolongitude:lng
-      })
-
-   var poiMks2 = [];
-    poiMks2 = [{
-      id: "11111",
-      latitude: lat,
-      longitude: lng,
-      iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico3.png",
-      width: 30,
-      height: 30,
-      callout: {
-        'display': 'ALWAYS', 'fontSize': '20rpx', 'content': title,
-        'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
-      }
-    }],
-
-    //渲染markers
-    that.setData({
-      markers: that.data.originMarkers.concat(poiMks2),
-      pioIsShow: true,
-      isPioAdrPopping: true
-    })    
-
-    that.pioAdrPopp(); //pioAdr弹出动画
-
-    that.getAddreeInfo(); //目的地地址信息
+    currentCity:"佛山",      //当前城市
 
   },
+
 
   //获得地图
   getMyMapLocation(e) {
@@ -244,32 +147,40 @@ Page({
 
   // 搜索关键字
   serachkeywords(keyword){
-    let that = this;
-    // 调用接口
-    qqmapsdk.search({
-      keyword: keyword,
-      location: that.data.latitude + ',' + that.data.longitude, //以我的位置作为周边搜索中心点
+    var that = this,
+        mapKey = that.data.mapKey,
+        keyword = that.data.keysValue,
+        currentCity = that.data.currentCity,
+        lat = that.data.latitude,
+        lng = that.data.longitude;
+
+    // 搜索接口
+    var _url = "";
+    _url = "https://apis.map.qq.com/ws/place/v1/search?boundary=region(" + currentCity + ", 0, " + lat + ", " + lng + ")&keyword=" + keyword + "&page_size=10&page_index=1&orderby=(" + lat + ", " + lng +",1000,1)&key="+ mapKey +"";
+    var opt0 = {
+      url: _url,
+      method: 'GET',
+      dataType: 'json',
       success(res) {
-        // console.log(res);
-        var mks = [],
-          //存makers地标显示
-          adr = []; //存地址信息
-        for (var i = 0; i < res.data.length; i++) {
+        //console.log(res)
+        var mks = [],//存makers地标显示
+            adr = []; //存地址信息
+        for (var i = 0; i < res.data.data.length; i++) {
           mks.push({
-            id: res.data[i].id,
-            title: res.data[i].title,
-            latitude: res.data[i].location.lat,
-            longitude: res.data[i].location.lng,
+            id: res.data.data[i].id,
+            title: res.data.data[i].title,
+            latitude: res.data.data[i].location.lat,
+            longitude: res.data.data[i].location.lng,
             iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico2.png", //图标路径
             width: 30,
             height: 30
           });
           adr.push({
-            id: res.data[i].id,
-            title: res.data[i].title,
-            address: res.data[i].address,
-            latitude: res.data[i].location.lat,
-            longitude: res.data[i].location.lng,
+            id: res.data.data[i].id,
+            title: res.data.data[i].title,
+            address: res.data.data[i].address,
+            latitude: res.data.data[i].location.lat,
+            longitude: res.data.data[i].location.lng,
             distance: "",
             duration: ""
           });
@@ -293,16 +204,118 @@ Page({
         });
 
         that.getMultiDisDur(); //搜索的地址列表
-
         that.linePopp(); //出行-路线动画
-      },
-      fail(res) {
+
+      },fail(res) {
         console.log(res);
       },
       complete(res) {
         // console.log(res);
       }
-    });
+    }
+    wx.request(opt0);
+
+  },
+
+
+  //选择搜索分类
+  chooseClassify(e) {
+    let that = this,
+      id = e.currentTarget.dataset.id;
+    that.setData({
+      classifyClassId: id
+    })
+    const classifyClassArr = that.data.classifyClassArr;
+    classifyClassArr.forEach(function (v, i) {
+      if (i == id) {
+        that.setData({
+          classifyClassName: v.name,
+          keysValue: v.name,
+          searchTipsArr: [], //清空提示
+          adrIsShow: true,
+          polyline: [],    //清空路线
+          tolatitude: "",
+          tolongitude: "",
+        })
+        that.serachkeywords(v.name); //搜索关键字    
+        that.getMultiDisDur(); //地址列表信息
+      }
+    })
+  },
+
+  //输入关键字的补完与提示
+  bindSearchInput(e) {
+    let that = this,
+      mapKey = that.data.mapKey,
+      keyword = that.data.classifyClassName,
+      v = e.detail.value,
+      _url = "";
+
+    keyword = v;
+
+    if (v == "" || v == undefined) {
+      that.setData({
+        searchTipsArr: [],
+        adrIsShow: false,
+        addressArr: [],
+      })
+      return
+    }
+
+    // 关键字的补完与提示接口
+    _url = "https://apis.map.qq.com/ws/place/v1/suggestion/?region=佛山&keyword=" + keyword + "&key=" + mapKey + "";
+    var opt4 = {
+      url: _url,
+      method: 'GET',
+      dataType: 'json',
+      success(res) {
+        // console.log(res)
+        that.setData({
+          searchTipsArr: res.data.data,
+        })
+      }
+    }
+    wx.request(opt4);
+
+  },
+
+  // 选择提示出的列表的地址
+  chooseSerTip(e) {
+    let that = this,
+      title = e.currentTarget.dataset.title,
+      lat = e.currentTarget.dataset.lat,
+      lng = e.currentTarget.dataset.lng;
+    //console.log(lat+','+lng);
+    that.setData({
+      tolatitude: lat,
+      tolongitude: lng
+    })
+
+    var poiMks2 = [];
+    poiMks2 = [{
+      id: "11111",
+      latitude: lat,
+      longitude: lng,
+      iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico3.png",
+      width: 30,
+      height: 30,
+      callout: {
+        'display': 'ALWAYS', 'fontSize': '20rpx', 'content': title,
+        'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
+      }
+    }],
+
+      //渲染markers
+      that.setData({
+        markers: that.data.originMarkers.concat(poiMks2),
+        pioIsShow: true,
+        isPioAdrPopping: true
+      })
+
+    that.pioAdrPopp(); //pioAdr弹出动画
+
+    that.getAddreeInfo(); //目的地地址信息
+
   },
 
   //搜索周边
