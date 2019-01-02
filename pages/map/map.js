@@ -103,11 +103,18 @@ Page({
       })
     const classifyClassArr = that.data.classifyClassArr;
     classifyClassArr.forEach(function(v,i){
-      if(i==that.data.classifyClassId){
+      if (i == id ){
         that.setData({
           classifyClassName: v.name,
-          keysValue:v.name
+          keysValue:v.name,
+          searchTipsArr: [], //清空提示
+          adrIsShow:true,
+          polyline: [],    //清空路线
+          tolatitude:"",
+          tolongitude:"",
         })
+        that.serachkeywords(v.name); //搜索关键字    
+        that.getMultiDisDur(); //地址列表信息
       }
     })
   },
@@ -124,7 +131,9 @@ Page({
 
     if (v == "" || v == undefined) {
       that.setData({
-        searchTipsArr: []
+        searchTipsArr: [],
+        adrIsShow:false,
+        addressArr:[],
       })
       return
     }
@@ -138,7 +147,7 @@ Page({
       success(res) {
         // console.log(res)
         that.setData({
-          searchTipsArr: res.data.data
+          searchTipsArr: res.data.data,
         })
       }
     }
@@ -174,10 +183,15 @@ Page({
 
     //渲染markers
     that.setData({
-      markers: that.data.originMarkers.concat(poiMks),
-    })
-    
-    that.linePlanning();  //路线
+      markers: that.data.originMarkers.concat(poiMks2),
+      pioIsShow: true,
+      isPioAdrPopping: true
+    })    
+
+    that.pioAdrPopp(); //pioAdr弹出动画
+
+    that.getAddreeInfo(); //目的地地址信息
+
   },
 
   //获得地图
@@ -228,6 +242,69 @@ Page({
     })
   },
 
+  // 搜索关键字
+  serachkeywords(keyword){
+    let that = this;
+    // 调用接口
+    qqmapsdk.search({
+      keyword: keyword,
+      location: that.data.latitude + ',' + that.data.longitude, //以我的位置作为周边搜索中心点
+      success(res) {
+        // console.log(res);
+        var mks = [],
+          //存makers地标显示
+          adr = []; //存地址信息
+        for (var i = 0; i < res.data.length; i++) {
+          mks.push({
+            id: res.data[i].id,
+            title: res.data[i].title,
+            latitude: res.data[i].location.lat,
+            longitude: res.data[i].location.lng,
+            iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico2.png", //图标路径
+            width: 30,
+            height: 30
+          });
+          adr.push({
+            id: res.data[i].id,
+            title: res.data[i].title,
+            address: res.data[i].address,
+            latitude: res.data[i].location.lat,
+            longitude: res.data[i].location.lng,
+            distance: "",
+            duration: ""
+          });
+        }
+
+        //多个地址终点
+        var multiToMap = "";
+        adr.map(function (v, i, array) {
+          multiToMap += v.latitude + "," + v.longitude + ";";
+        });
+        that.setData({
+          multiToMap: multiToMap.substring(0, multiToMap.length - 1)
+        });
+
+        that.setData({
+          markers: that.data.originMarkers.concat(mks), //渲染markers
+          polyline: [], //清空路线
+          addressArr: adr,
+          pioIsShow: false,
+          adrIsShow: true
+        });
+
+        that.getMultiDisDur(); //搜索的地址列表
+
+        that.linePopp(); //出行-路线动画
+      },
+      fail(res) {
+        console.log(res);
+      },
+      complete(res) {
+        // console.log(res);
+      }
+    });
+  },
+
   //搜索周边
   searchNearby(e) {
     let that = this,
@@ -242,66 +319,8 @@ Page({
     that.setData({
       keysValue: keysValue
     });
-    // 调用接口
-    qqmapsdk.search({
-      keyword: keysValue,
-      location: that.data.latitude + ',' + that.data.longitude, //以我的位置作为周边搜索中心点
-      success(res) {
-        // console.log(res);
-        var mks = [], //存makers地标显示
-            adr = [];  //存地址信息
-        for (var i = 0; i < res.data.length; i++) {
-          mks.push({ 
-            id: res.data[i].id,
-            title: res.data[i].title,
-            latitude: res.data[i].location.lat,
-            longitude: res.data[i].location.lng,
-            iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico2.png", //图标路径
-            width: 30,
-            height: 30
-          })
-          adr.push({
-            id: res.data[i].id,
-            title: res.data[i].title,
-            address: res.data[i].address,
-            latitude: res.data[i].location.lat,
-            longitude: res.data[i].location.lng,
-            distance:"",
-            duration:""
-          })
-        }
 
-        //多个地址终点
-        var multiToMap = "";
-        adr.map(function(v,i,array){
-          multiToMap += v.latitude + "," + v.longitude +";"
-        })
-        that.setData({
-          multiToMap: multiToMap.substring(0, multiToMap.length - 1)
-        })
-
-       
-        that.setData({
-          markers: that.data.originMarkers.concat(mks),  //渲染markers
-          polyline: [], //清空路线
-          addressArr:adr,
-          pioIsShow:false,
-          adrIsShow:true
-        })
-
-        that.getMultiDisDur();//搜索的地址列表
-
-        that.linePopp(); //出行-路线动画
-
-      },
-      fail(res) {
-        console.log(res);
-      },
-      complete(res) {
-        // console.log(res);
-      }
-    });
-
+    that.serachkeywords(keysValue); //搜索关键字    
 
   },
 
@@ -426,6 +445,10 @@ Page({
     })
 
    that.linePlanning();  //路线
+
+  if (that.data.adrIsShow){
+    that.getMultiDisDur(); //多个地址信息
+  }
   
   },
 
@@ -436,6 +459,14 @@ Page({
       trafficWay = that.data.trafficWay, //出行方式
       fromMap = that.data.latitude + ',' + that.data.longitude, //始点
       toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
+
+    if (that.data.tolatitude == "" || that.data.tolongitude == "") {
+      wx.showToast({
+        icon: "none",
+        title: '请选择标记地点',
+      })
+      return
+    }
 
     // transit公车接口参数不一样
     var _url = "";
@@ -557,7 +588,7 @@ Page({
         })
         fromMap = that.data.latitude + ',' + that.data.longitude, //始点
         toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
-        if (that.data.tolatitude == "" || that.data.tolongitude == ""){
+        if (that.data.tolatitude == ""  || that.data.tolongitude == ""){
             wx.showToast({
               icon:"none",
               title: '请选择标记地点',

@@ -42,7 +42,7 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   <view class='address-thead'>搜索出的地址列表：</view>
   <view class='address-list' >
     <block wx:for="{{addressArr}}" wx:for-item="v" wx:key="k">
-      <view class='mod'>
+      <view class='mod' data-lat="{{v.latitude}}" data-lng="{{v.longitude}}" data-title="{{v.title}}" bindtap='chooseSerTip'>
         <view class='th'>{{v.title}}</view>
         <view class='des'>{{v.address}}</view>
         <label class='dura'>{{v.duration}}</label>
