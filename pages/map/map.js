@@ -60,48 +60,125 @@ Page({
 
     isLinePoping: false, //出行-路线模块地址是否弹出
     lineAnimPlus: {},//路线动画
+    
+    searchTipsArr:[], //搜索关键词输入提示列表
+    //搜索关键词分类列表
+    classifyClassArr: [
+      {
+        id : 0,
+        name : "美食"
+      },
+      {
+        id: 1,
+        name: "酒店"
+      },
+      {
+        id: 2,
+        name: "银行"
+      },
+      {
+        id: 3,
+        name: "超市"
+      },
+      {
+        id: 4,
+        name: "公园"
+      },
+      {
+        id: 5,
+        name: "地铁"
+      }
+    ], 
+    classifyClassId:0,
+    classifyClassName:"美食",
 
   },
 
-  //出行-路线弹出动画
-  linePopp() {
-    let that = this;
-    var lineAnimPlus = wx.createAnimation({
-      duration: 300,
-      timingFunction: 'ease-out'
+  //选择搜索分类
+  chooseClassify(e){
+    let that = this,
+      id = e.currentTarget.dataset.id;
+      that.setData({
+        classifyClassId:id
+      })
+    const classifyClassArr = that.data.classifyClassArr;
+    classifyClassArr.forEach(function(v,i){
+      if(i==that.data.classifyClassId){
+        that.setData({
+          classifyClassName: v.name,
+          keysValue:v.name
+        })
+      }
     })
-    lineAnimPlus.opacity(1).step(0).scale(1,1).step(1);
+  },
+
+  //输入关键字的补完与提示
+  bindSearchInput(e){
+    let that = this,
+        mapKey = that.data.mapKey,
+        keyword = that.data.classifyClassName,
+        v = e.detail.value,
+        _url = "";
+      
+        keyword = v;
+
+    if (v == "" || v == undefined) {
+      that.setData({
+        searchTipsArr: []
+      })
+      return
+    }
+
+    // 关键字的补完与提示接口
+    _url = "https://apis.map.qq.com/ws/place/v1/suggestion/?region=佛山&keyword=" + keyword + "&key=" + mapKey + "";
+    var opt4 = {
+      url: _url,
+      method: 'GET',
+      dataType: 'json',
+      success(res) {
+        // console.log(res)
+        that.setData({
+          searchTipsArr: res.data.data
+        })
+      }
+    }
+    wx.request(opt4);
+   
+  },
+
+  // 选择提示出的列表的地址
+  chooseSerTip(e){
+    let that = this,
+      title = e.currentTarget.dataset.title,
+      lat = e.currentTarget.dataset.lat,
+      lng = e.currentTarget.dataset.lng;
+      //console.log(lat+','+lng);
+      that.setData({
+        tolatitude:lat,
+        tolongitude:lng
+      })
+
+   var poiMks2 = [];
+    poiMks2 = [{
+      id: "11111",
+      latitude: lat,
+      longitude: lng,
+      iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico3.png",
+      width: 30,
+      height: 30,
+      callout: {
+        'display': 'ALWAYS', 'fontSize': '20rpx', 'content': title,
+        'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
+      }
+    }],
+
+    //渲染markers
     that.setData({
-      lineAnimPlus: lineAnimPlus.export(),
+      markers: that.data.originMarkers.concat(poiMks),
     })
+    
+    that.linePlanning();  //路线
   },
-
- 
-  //pioAdr弹出动画
-  pioAdrPopp() {
-    let that = this;
-    var pioAdrAnimPlus = wx.createAnimation({
-      duration: 300,
-      timingFunction: 'ease-out'
-    })
-    pioAdrAnimPlus.bottom(0).step();
-    that.setData({
-      pioAdrAnimPlus: pioAdrAnimPlus.export(),
-    })
-  },
-  //pioAdr收回动画
-  pioAdrTakeback() {
-    let that = this;
-    var pioAdrAnimPlus = wx.createAnimation({
-      duration: 500,
-      timingFunction: 'ease-out'
-    })
-    pioAdrAnimPlus.bottom(-250+'rpx').step();
-    that.setData({
-      pioAdrAnimPlus: pioAdrAnimPlus.export(),
-    })
-  },
-
 
   //获得地图
   getMyMapLocation(e) {
@@ -666,6 +743,46 @@ Page({
 
     return duration, distance;
   },
+
+
+  //出行-路线弹出动画
+  linePopp() {
+    let that = this;
+    var lineAnimPlus = wx.createAnimation({
+      duration: 300,
+      timingFunction: 'ease-out'
+    })
+    lineAnimPlus.opacity(1).step(0).scale(1, 1).step(1);
+    that.setData({
+      lineAnimPlus: lineAnimPlus.export(),
+    })
+  },
+
+  //pioAdr弹出动画
+  pioAdrPopp() {
+    let that = this;
+    var pioAdrAnimPlus = wx.createAnimation({
+      duration: 300,
+      timingFunction: 'ease-out'
+    })
+    pioAdrAnimPlus.bottom(0).step();
+    that.setData({
+      pioAdrAnimPlus: pioAdrAnimPlus.export(),
+    })
+  },
+  //pioAdr收回动画
+  pioAdrTakeback() {
+    let that = this;
+    var pioAdrAnimPlus = wx.createAnimation({
+      duration: 500,
+      timingFunction: 'ease-out'
+    })
+    pioAdrAnimPlus.bottom(-250 + 'rpx').step();
+    that.setData({
+      pioAdrAnimPlus: pioAdrAnimPlus.export(),
+    })
+  },
+
 
 
   /**

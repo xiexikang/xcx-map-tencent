@@ -2,8 +2,9 @@
 page{ background-color: #000; width: 100%; height: 100%;}
 #myMap{ width:100%; height:60%; }
 
+.the-search{ width: 100%; height: auto; overflow: hidden; position: relative;}
 .ser-con{ width: 100%; height: 80rpx; background-color: #fff; border-top: 1px solid #fafafa; 
-border-bottom: 1px solid #fafafa; box-shadow: 0 0 12rpx #999; box-sizing: border-box;}
+border-bottom: 1px solid #fafafa; box-shadow: 0 0 12rpx #999; }
 .ser-con .btn{ width:20%; height: 80rpx; line-height: 80rpx; font-size: 28rpx; border-radius: 0; padding: 0; 
 background-color: #fff; float: right; position: relative;}
 .ser-con .btn::after { border: none;}
@@ -11,11 +12,13 @@ background-color: #fff; float: right; position: relative;}
 position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
 .ser-con .inp{ width:80%; height: 80rpx; padding: 0 20rpx; box-sizing: border-box; font-size: 28rpx; 
 background-color: #fff; float: left;}
-
+.ser-list{ width: 100%; height: auto; border:1px solid #f0f0f0; background-color: #fafafa; }
+.ser-list .li{ padding: 0 20rpx; height: 60rpx; line-height: 60rpx; font-size: 24rpx; color: #666;}
+.ser-classify{ width: 100%; height: 70rpx; line-height: 70rpx; background-color: #fff; display: flex;}
+.ser-classify .lab{ flex: 1; text-align: center; display: inline-block; color: #333; font-size: 24rpx;}
 
 .line-planning{ width: 100%; height: 80rpx; padding: 0 30rpx; box-sizing: border-box; margin-top: 30rpx;
-  transform: scale(0); opacity: 0;
-}
+  transform: scale(0); opacity: 0; }
 .line-planning .sel-way{ width: 65%; float: left; }
 .line-planning .sel-way .picker{ line-height: 80rpx; background-color: #fff; padding: 0 20rpx; font-size: 28rpx; }
 .line-planning .sel-way .picker .mm{ color: rgba(153, 0, 255, 0.699);}

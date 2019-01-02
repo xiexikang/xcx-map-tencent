@@ -1,17 +1,31 @@
 <!--pages/map/map.wxml-->
 
-<!-- 搜索模块 -->
-<view class='ser-con'>
-  <form bindsubmit="searchNearby" >
-    <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue'></input>
-    <button class='btn'  form-type="submit">搜索</button>
-  </form>
-</view>
-
+<!-- 地图组件 -->
 <map id="myMap" markers="{{markers}}"   latitude="{{latitude}}" longitude="{{longitude}}" 
 scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindmarkertap='bindmarkertap'   bindpoitap="bindpoitap" 
 >
 </map>
+
+<!-- 搜索模块 -->
+<view class='the-search'>
+  <form bindsubmit="searchNearby" >
+    <view class='ser-con'>
+        <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' bindinput="bindSearchInput"></input>
+        <button class='btn'  form-type="submit">搜索</button>
+    </view>
+    <view class='ser-classify'>
+      <block wx:for="{{classifyClassArr}}" wx:for-item="v" wx:for-index="i" wx:key="k">
+        <label class='lab' data-id="{{i}}" bindtap='chooseClassify'>{{v.name}}</label>
+      </block>
+    </view>
+    <view class='ser-list'>
+      <block wx:for="{{searchTipsArr}}" wx:for-item="v" wx:key="k">
+        <view class='li' data-lat='{{v.location.lat}}' data-lng="{{v.location.lng}}" data-title="{{v.title}}" bindtap='chooseSerTip'>{{v.title}}</view>
+      </block>
+    </view>
+
+  </form>
+</view>
 
 <!-- 路线规划 -->
 <view class='line-planning'  animation="{{lineAnimPlus}}" >
