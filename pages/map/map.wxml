@@ -36,6 +36,12 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   <button type='button' class='btn'  bindtap="linePlanning">路线规划</button>
 </view>
 
+<!-- 具体路线 -->
+<view class='the-routes' wx-if="{{isShowRoutes}}">
+  <view class='th'>具体路线:</view>
+  <view class='lus'>{{routesLines}}</view>
+</view>
+
 <!-- 搜索出的地址列表： -->
 <view class='address-container' wx:if="{{adrIsShow}}">
   <view class='address-thead'>搜索出的地址列表：</view>
@@ -50,6 +56,9 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
     </block>
   </view>
 </view>
+
+<!--  -->
+<view class='separate'></view>
 
 <!-- pio建筑选中的地址： -->
 <view class='pio-address-info' animation="{{pioAdrAnimPlus}}" wx:if="{{pioIsShow}}">

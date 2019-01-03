@@ -94,6 +94,9 @@ Page({
 
     currentCity:"佛山",      //当前城市
 
+    routesLines:"", // 具体路线
+    rouLinesIsShow : false // 是否显示具体路线模块
+
   },
 
 
@@ -117,7 +120,7 @@ Page({
             height: 40,
             callout: {
               'display': 'ALWAYS', 'fontSize': '24rpx', 'content': '我的位置',
-              'padding': '4rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
+              'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
             }
           }],
           markers: [{
@@ -128,7 +131,7 @@ Page({
             width: 40,
             height: 40,
             callout: {
-              'display': 'ALWAYS', 'fontSize': '26rpx', 'content': '我的位置',
+              'display': 'ALWAYS', 'fontSize': '24rpx', 'content': '我的位置',
               'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
             }
           }],
@@ -312,7 +315,7 @@ Page({
       width: 30,
       height: 30,
       callout: {
-        'display': 'ALWAYS', 'fontSize': '20rpx', 'content': title,
+        'display': 'ALWAYS', 'fontSize': '24rpx', 'content': title,
         'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
       }
     }],
@@ -402,7 +405,7 @@ Page({
       width: 30,
       height: 30,
       callout: {
-        'display': 'ALWAYS', 'fontSize': '20rpx', 'content': e.detail.name,
+        'display': 'ALWAYS', 'fontSize': '24rpx', 'content': e.detail.name,
         'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
       }
     }],
@@ -517,7 +520,7 @@ Page({
     var _url = "";
     if (trafficWay == "transit") {
       _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&LEAST_TIME&output=json&callback=cb&key=" + mapKey + "";
-      
+     
     } else {
       _url = "https://apis.map.qq.com/ws/direction/v1/"+trafficWay+"/?&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
     }
@@ -531,11 +534,24 @@ Page({
       //请求成功回调
       success(res) {
         // console.log(res);    
-        var ret = res.data
-    
+        var ret = res.data;
+        
+        //距离过近
+        if (ret.status == 326) {
+          console.log(ret.message);
+          wx.showToast({
+            icon:'none',
+            title: ret.message,
+          })
+          that.setData({
+            routesLines: ret.message
+          })
+        }
         if (ret.status != 0) return; //服务异常处理
 
         var pl = [];  // map的polyline参数坐标数组
+
+        var routesLines = ""; //存具体路线
        
         if (trafficWay == "transit") {
           //
@@ -543,17 +559,52 @@ Page({
               routes = [];
           // routes = ret.result.routes; //路线方案
           routes = ret.result.routes[0]; //路线方案:返回了几个方案，占时先选择方案1
+          // console.log(routes);
+
           var steps = [];
               steps = routes.steps;     //路线过程
-          steps.forEach(function (x, i) {
+          steps.map(function (x, i) {
             var polyline;
+
+            console.log(x)
+
             if (x.mode == "TRANSIT") {
-              coors.push(x.lines[0].polyline)
-            } else {
-              coors.push(x.polyline)
+              var lines = [];
+              lines = x.lines[0]
+              coors.push(lines.polyline);
+
+              // console.log(lines)
+              if (lines.vehicle=="BUS"){
+                var bus = "公交上车站:" + lines.geton.title + "-公交下车站:" + lines.getoff.title;
+                routesLines += bus +","
+            
+              } else if (lines.vehicle =="SUBWAY"){
+                var subway =  "地铁上车站：" + lines.geton.title + "-地铁下车站：" + lines.getoff.title;
+                routesLines += subway + ","
+              }
+            } else if (x.mode =="WALKING") {
+              coors.push(x.polyline);
+
+              if (x.steps!=undefined){
+                x.steps.forEach(function (g) {
+                  // console.log(g)
+                  var walking = g.instruction
+                  routesLines += walking + ","
+                })
+               
+              }
             }
+
           })
 
+          //---具体路线
+          routesLines = routesLines.substring(0, routesLines.length - 1)+'。';
+          // console.log(routesLines);
+          that.setData({
+            routesLines: routesLines,
+            isShowRoutes: true,
+          })
+   
           //过滤掉返回undefinded的数据
           var coors2 = coors.filter((k) => k != undefined)
 
@@ -594,11 +645,25 @@ Page({
           for (var i = 0; i < coors.length; i += 2) {
             pl.push({ latitude: coors[i], longitude: coors[i + 1] })
           }
-
           // console.log(pl);
+          // --------------------------------
+          var routes = [], //存路线方案
+            steps = [];//存具体路线
+          routes = ret.result.routes[0]; //路线方案
+          steps = routes.steps;
+          var newSteps = steps.map(function(m){
+            return m.instruction
+          })
+
+           //---具体路线
+          routesLines = newSteps.join(',').substring(0, newSteps.join(',').length - 1) + '。';
+          // console.log(routesLines);
+          that.setData({
+            routesLines: routesLines,
+            isShowRoutes: true,
+          })
         }
 
-       
         //设置polyline属性，将路线显示出来
         that.setData({
           polyline: [{
@@ -608,7 +673,6 @@ Page({
             arrowLine: true
           }]
         })
-
      
       }
     };
@@ -648,26 +712,27 @@ Page({
             duration: "接口不支持：未知时间",
             distance: "接口不支持：未知距离"
           })
-          return
+          // return
         }else{
           _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
+          var opt = {
+            url: _url,
+            method: 'GET',
+            dataType: 'json',
+            success(res) {
+              var distance, duration;
+              var elements = [];
+              elements = res.data.result.elements[0]
+              distance = elements.distance;  //距离
+              duration = elements.duration;  //时间
+
+              that.transformUnit(duration, distance); //转换单位
+
+            }
+          };
+          wx.request(opt);
         }
-        var opt = {
-          url: _url,
-          method: 'GET',
-          dataType: 'json',
-          success(res) {
-            var distance, duration;
-            var elements = [];
-            elements = res.data.result.elements[0]
-            distance = elements.distance;  //距离
-            duration = elements.duration;  //时间
-
-            that.transformUnit(duration, distance); //转换单位
-
-          }
-        };
-        wx.request(opt);
+        
       }
 
     })
@@ -825,7 +890,7 @@ Page({
   linePopp() {
     let that = this;
     var lineAnimPlus = wx.createAnimation({
-      duration: 300,
+      duration: 200,
       timingFunction: 'ease-out'
     })
     lineAnimPlus.opacity(1).step(0).scale(1, 1).step(1);
@@ -838,7 +903,7 @@ Page({
   pioAdrPopp() {
     let that = this;
     var pioAdrAnimPlus = wx.createAnimation({
-      duration: 300,
+      duration: 200,
       timingFunction: 'ease-out'
     })
     pioAdrAnimPlus.bottom(0).step();
@@ -850,7 +915,7 @@ Page({
   pioAdrTakeback() {
     let that = this;
     var pioAdrAnimPlus = wx.createAnimation({
-      duration: 500,
+      duration: 200,
       timingFunction: 'ease-out'
     })
     pioAdrAnimPlus.bottom(-250 + 'rpx').step();
