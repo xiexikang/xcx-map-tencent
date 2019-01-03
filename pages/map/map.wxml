@@ -10,21 +10,20 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
 <view class='the-search'>
   <form bindsubmit="searchNearby" >
     <view class='ser-con'>
-        <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' bindinput="bindSearchInput"></input>
+        <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' bindinput="bindSearchInput" bindconfirm='searchNearby' />
         <button class='btn'  form-type="submit">搜索</button>
     </view>
-    <view class='ser-classify'>
-      <block wx:for="{{classifyClassArr}}" wx:for-item="v" wx:for-index="i" wx:key="k">
-        <label class='lab' data-id="{{i}}" bindtap='chooseClassify'>{{v.name}}</label>
-      </block>
-    </view>
-    <view class='ser-list'>
-      <block wx:for="{{searchTipsArr}}" wx:for-item="v" wx:key="k">
-        <view class='li' data-lat='{{v.location.lat}}' data-lng="{{v.location.lng}}" data-title="{{v.title}}" bindtap='chooseSerTip'>{{v.title}}</view>
-      </block>
-    </view>
-
   </form>
+  <view class='ser-classify'>
+    <block wx:for="{{classifyClassArr}}" wx:for-item="v" wx:for-index="i" wx:key="k">
+      <label class='lab' data-id="{{i}}" bindtap='chooseClassify'>{{v.name}}</label>
+    </block>
+  </view>
+  <view class='ser-list'>
+    <block wx:for="{{searchTipsArr}}" wx:for-item="v" wx:key="k">
+      <view class='li' data-lat='{{v.location.lat}}' data-lng="{{v.location.lng}}" data-title="{{v.title}}" data-des="{{v.address}}" data-duration="{{v.duration}}" data-distance="{{v.distance}}"  bindtap='chooseSerTip'>{{v.title}}</view>
+    </block>
+  </view>
 </view>
 
 <!-- 路线规划 -->
@@ -42,7 +41,7 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   <view class='address-thead'>搜索出的地址列表：</view>
   <view class='address-list' >
     <block wx:for="{{addressArr}}" wx:for-item="v" wx:key="k">
-      <view class='mod' data-lat="{{v.latitude}}" data-lng="{{v.longitude}}" data-title="{{v.title}}" bindtap='chooseSerTip'>
+      <view class='mod' data-lat="{{v.latitude}}" data-lng="{{v.longitude}}" data-title="{{v.title}}" data-des="{{v.address}}" data-duration="{{v.duration}}" data-distance="{{v.distance}}"  bindtap='chooseSerTip'>
         <view class='th'>{{v.title}}</view>
         <view class='des'>{{v.address}}</view>
         <label class='dura'>{{v.duration}}</label>

@@ -153,11 +153,12 @@ Page({
         currentCity = that.data.currentCity,
         lat = that.data.latitude,
         lng = that.data.longitude;
+        var latlng = lat+','+lng;
 
     // 搜索接口
     var _url = "";
-    _url = "https://apis.map.qq.com/ws/place/v1/search?boundary=region(" + currentCity + ", 0, " + lat + ", " + lng + ")&keyword=" + keyword + "&page_size=10&page_index=1&orderby=(" + lat + ", " + lng +",1000,1)&key="+ mapKey +"";
-    var opt0 = {
+    _url = "https://apis.map.qq.com/ws/place/v1/search?boundary=nearby(" + latlng + ",1000,1)&orderby=_distance&keyword=" + keyword + "&page_size=10&page_index=1&key="+ mapKey +"";
+    var opt = {
       url: _url,
       method: 'GET',
       dataType: 'json',
@@ -169,6 +170,7 @@ Page({
           mks.push({
             id: res.data.data[i].id,
             title: res.data.data[i].title,
+            address: res.data.data[i].address,
             latitude: res.data.data[i].location.lat,
             longitude: res.data.data[i].location.lng,
             iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico2.png", //图标路径
@@ -213,7 +215,7 @@ Page({
         // console.log(res);
       }
     }
-    wx.request(opt0);
+    wx.request(opt);
 
   },
 
@@ -248,8 +250,12 @@ Page({
     let that = this,
       mapKey = that.data.mapKey,
       keyword = that.data.classifyClassName,
-      v = e.detail.value,
-      _url = "";
+      currentCity = that.data.currentCity,
+      lat = that.data.latitude,
+      lng = that.data.longitude,
+      v = e.detail.value;
+    
+    var latlng = lat + "," + lng;
 
     keyword = v;
 
@@ -263,19 +269,22 @@ Page({
     }
 
     // 关键字的补完与提示接口
-    _url = "https://apis.map.qq.com/ws/place/v1/suggestion/?region=佛山&keyword=" + keyword + "&key=" + mapKey + "";
-    var opt4 = {
+    var _url = "";
+    _url = "https://apis.map.qq.com/ws/place/v1/suggestion/?region=" + currentCity + "&keyword=" + keyword + "&location=" + latlng + "&key=" + mapKey + "";
+    var opt = {
       url: _url,
       method: 'GET',
       dataType: 'json',
       success(res) {
-        // console.log(res)
+        if(res.data.status!=0){
+          return
+        }
         that.setData({
           searchTipsArr: res.data.data,
         })
       }
     }
-    wx.request(opt4);
+    wx.request(opt);
 
   },
 
@@ -283,6 +292,9 @@ Page({
   chooseSerTip(e) {
     let that = this,
       title = e.currentTarget.dataset.title,
+      des = e.currentTarget.dataset.des,
+      duration = e.currentTarget.dataset.duration,
+      distance = e.currentTarget.dataset.distance,
       lat = e.currentTarget.dataset.lat,
       lng = e.currentTarget.dataset.lng;
     //console.log(lat+','+lng);
@@ -305,12 +317,17 @@ Page({
       }
     }],
 
-      //渲染markers
-      that.setData({
-        markers: that.data.originMarkers.concat(poiMks2),
-        pioIsShow: true,
-        isPioAdrPopping: true
-      })
+    //渲染markers
+    that.setData({
+      markers: that.data.originMarkers.concat(poiMks2),
+      pioIsShow: true,
+      isPioAdrPopping: true,
+      polyline:[],
+      addressTitle:title,
+      // addressDes:des,
+      distance: distance,
+      duration: duration
+    })
 
     that.pioAdrPopp(); //pioAdr弹出动画
 
@@ -321,19 +338,27 @@ Page({
   //搜索周边
   searchNearby(e) {
     let that = this,
-        keysValue = e.detail.value.keysValue;
-    if (keysValue == undefined || keysValue==""){
+      v = e.detail.value,
+      k = "";
+    if(e.type=="submit"){
+      k = v.keysValue;
+    }
+    if (e.type =="confirm"){
+      k = v;
+    }                                                                                                                                                                                                    
+    if (k == undefined || k == "") {
       wx.showToast({
         title: '请输入搜索地点',
-        icon:'none'
+        icon: 'none'
       })
       return
     }
+
     that.setData({
-      keysValue: keysValue
+      keysValue: k
     });
 
-    that.serachkeywords(keysValue); //搜索关键字    
+    that.serachkeywords(k); //搜索关键字    
 
   },
 
@@ -344,15 +369,19 @@ Page({
       markerId = e.markerId,
       markersArr = [],
       markersArr = that.data.markers;
+      
     markersArr.forEach(function (v, i, array) {
       let id = v.id
       if (id == markerId) {
         that.setData({
+          addressTitle: v.title,
           tolatitude: v.latitude,
           tolongitude: v.longitude,
           polyline: [],    //清空路线
-          pioIsShow:false
+          pioIsShow: true,
+          isPioAdrPopping: true,
         })
+        that.pioAdrPopp(); //pioAdr弹出动画
       }
     })
 
@@ -377,10 +406,11 @@ Page({
         'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
       }
     }],
+      // console.log(e.detail)
       that.setData({
         tolatitude: e.detail.latitude,
         tolongitude: e.detail.longitude,
-        addressTitle:e.detail.name,
+        addressTitle: e.detail.name,
         pioIsShow:true,
         adrIsShow:false,
       })
@@ -411,23 +441,24 @@ Page({
 
   //目的地地址信息
   getAddreeInfo(e){
-    var that = this;
-    // 实例化API核心类
-    var demo = new QQMapWX({
-      key: that.data.mapKey // 必填
-    });
-    // 调用接口
-    demo.reverseGeocoder({
-      location: {
-        latitude: that.data.tolatitude,
-        longitude: that.data.tolongitude,
-      },
-      success(res) {
-        //console.log(res);
-        that.setData({
-          addressDes: res.result.address
-        })
+    let that = this,
+      mapKey = that.data.mapKey,
+      lat = that.data.tolatitude,
+      lng = that.data.tolongitude;
+    var latlng = lat + "," + lng;
 
+    //逆地址解析(坐标位置描述)接口
+    var _url = "";
+    _url = "https://apis.map.qq.com/ws/geocoder/v1/?location=" + latlng + "&key=" + mapKey + "&get_poi=0&poi_options=address_format=short;radius=5000";
+    var opt = {
+      url: _url,
+      method: 'GET',
+      dataType: 'json',
+      success(res) {
+        //  console.log(res);
+        that.setData({
+          addressDes: res.data.result.address
+        })
       },
       fail(res) {
         //console.log(res);
@@ -435,7 +466,8 @@ Page({
       complete(res) {
         //console.log(res);
       }
-    });
+    }
+    wx.request(opt);
 
     that.getDistanceDuration(); //两地距离，时间
   },
@@ -613,14 +645,14 @@ Page({
         if (trafficWay == "bicycling" || trafficWay == "transit"){
           console.log("该接口占不支持骑行bicycling与公交transit");
           that.setData({
-            duration: "未知时间",
-            distance: "未知距离"
+            duration: "接口不支持：未知时间",
+            distance: "接口不支持：未知距离"
           })
           return
         }else{
           _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
         }
-        var opt2 = {
+        var opt = {
           url: _url,
           method: 'GET',
           dataType: 'json',
@@ -635,7 +667,7 @@ Page({
 
           }
         };
-        wx.request(opt2);
+        wx.request(opt);
       }
 
     })
@@ -677,17 +709,17 @@ Page({
         } else {
           _url = "https://apis.map.qq.com/ws/distance/v1/?mode=" + trafficWay + "&from=" + fromMap + "&to=" + multiToMap + "&key=" + mapKey + "";
         }
-        var opt3 = {
+        var opt = {
           url: _url,
           method: 'GET',
           dataType: 'json',
           success(res) {
-            //console.log(res);
+           // console.log(res);
             var elements = [];
             elements = res.data.result.elements;
             elements.map(function (v, i, array) {
               //----单位换算------：
-              // //时间格式
+              //时间格式
               var theTime = parseInt(v.duration),// 秒
                   middle = 0,
                   hour = 0;
@@ -737,7 +769,7 @@ Page({
             });
           }
         };
-        wx.request(opt3);
+        wx.request(opt);
       }
     })
   },
