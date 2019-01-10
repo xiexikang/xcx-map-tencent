@@ -26,6 +26,21 @@ scale='14' show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindma
   </view>
 </view>
 
+<!-- 省市区 -->
+<picker-view class='pkv' indicator-style="height: 80rpx;" value="{{citysArr}}" bindchange="bindChangeCitys">
+    <picker-view-column>
+      <view class='cti' wx:for="{{sheng}}" wx:for-item="v0" wx:key='k0'>{{v0}}</view>
+    </picker-view-column>
+    <picker-view-column>
+      <view class='cti' wx:for="{{shi}}" wx:for-item="v1" wx:key='k1'>{{v1}}</view>
+    </picker-view-column>
+    <picker-view-column>
+      <view class='cti' wx:for="{{qu}}" wx:for-item="v2" wx:key='k2'>{{v2}}</view>
+    </picker-view-column>
+</picker-view>
+
+
+
 <!-- 路线规划 -->
 <view class='line-planning'  animation="{{lineAnimPlus}}" >
   <view class='sel-way'>
