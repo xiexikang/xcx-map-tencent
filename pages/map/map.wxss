@@ -59,13 +59,9 @@ font-size: 28rpx; border-bottom: 1px solid #f0f0f0; background-color: rgb(134, 3
 
 .separate{ width: 100%; height: 250rpx;}
 
-
-.citySelect{ width: 100%; height: 80rpx; background-color: #fff; margin-top: 30rpx;}
-.citySelect .picker{ padding: 0 20rpx; height: 80rpx; line-height: 80rpx; color: #333; font-size: 24rpx;}
-
-
+.the-citys{width: 100%; height: auto; overflow: hidden; margin-top: 30rpx; background-color: #fff;}
+.the-citys .city-thead{ width: 100%; height:80rpx; line-height: 80rpx; padding: 0 20rpx; box-sizing: border-box; color:#fff; 
+font-size: 28rpx; border-bottom: 1px solid #f0f0f0; background-color: rgb(0, 200, 214); }
 .pkv{ width: 100%; height: 200rpx; }
-
-picker-view-column{ height:100%; background-color: rgb(34, 110, 252);}
-
+picker-view-column{ height:100%; background-color: rgb(100, 100, 100);}
 .cti{ color:#fff; text-align: center; font-size: 26rpx;  line-height: 2.4; }

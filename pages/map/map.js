@@ -10,6 +10,7 @@ Page({
    */
   data: {
     mapKey: "MKWBZ-IH53W-NGSRB-OTOS7-2SW52-AHBOI",  //地图的key
+    scale: 14,
     markers: [],  //地图参数
     circles: [],  //区域
     keysValue:"", //关键字
@@ -97,129 +98,19 @@ Page({
     routesLines:"", // 具体路线
     rouLinesIsShow : false, // 是否显示具体路线模块
 
-    province:"",//省份
-    city:"",   //市
-    district:"", //区
-    multiArray: [['无脊柱动物', '脊柱动物'], ['扁性动物', '线形动物', '环节动物', '软体动物', '节肢动物'], ['猪肉绦虫', '吸血虫']],
-    multiIndex: [0, 0, 0],
 
-
+    //选择城市[省，市,区]
     citysArr: [0, 0, 0],
-
-    sheng:[],
-    shi:[],
-    qu:[],
-
     aVal: 0,
     bVal: 0,
     cVal: 0,
-  },
-
-
-  //选择城市bindChangeCitys
-  bindChangeCitys(e){
-    let that = this;
-    if (e != undefined) {
-      let val = e.detail.value;
-     // console.log(val)
-
-      that.setData({
-        citysArr: val,
-        aVal: val["0"],
-        bVal: val["1"],
-        cVal: val["2"],
-      })
-
-      that.getCitys(); //切换获取地址
-    }
+    sheng: [],
+    shi: [],
+    qu: [],
+    slectAdr:" ",  //选中的地址
+    pickType:false,  //控制城市切换完否
 
   },
-
-  //切换获取地址
-  getCitys(e){
-    var that = this,
-    mapKey = that.data.mapKey;
-    //  获取全部行政区划数据
-    var _url = "";
-    _url = "https://apis.map.qq.com/ws/district/v1/list?key=" + mapKey +"";
-    var opt = {
-      url: _url,
-      method: 'GET',
-      dataType: 'json',
-      success(res) {
-        var ret = res.data;
-        //  console.log(res);
-        if (ret.status != 0) {
-          return
-        }
-
-        var aArr = [], bArr = [], cArr = [], minA, maxA, minB, maxB;
-        aArr = ret.result[0]
-        bArr = ret.result[1]
-        cArr = ret.result[2]
-
-        var ah = [], bh = [], ch = [];
-        var aVal = that.data.aVal,
-          bVal = that.data.bVal,
-          cVal = that.data.cVal;
-
-        // 省份
-        aArr.forEach(function(a,i){
-          ah.push(a.fullname)
-          return ah
-        }) 
-
-
-        //市
-        minA = aArr[aVal].cidx["0"]
-        maxA = aArr[aVal].cidx["1"]
-
-        var arrBB = [];
-        const newBarr =  bArr.map(function (b, i){
-         if (i >= minA && i <= maxA) {
-           arrBB.push(b)
-          }
-          arrBB.forEach(function(bb){
-            bh.push(bb.fullname)
-          })
-          bh = Array.from(new Set(bh))
-          return bh, arrBB
-        })
-        // console.log(newBarr)
-
-        // 区
-        if (arrBB[bVal].hasOwnProperty('cidx')==true) {
-          //console.log(arrBB[bVal])
-          minB = arrBB[bVal].cidx["0"]
-          maxB = arrBB[bVal].cidx["1"]
-        }
-
-        var arrCC = [];
-        const newCarr = cArr.map(function (c, i) {
-          if (i >= minB && i <= maxB) {
-            arrCC.push(c)
-          }
-          arrCC.forEach(function (cc) {
-            ch.push(cc.fullname)
-          })
-          ch = Array.from(new Set(ch))
-
-          return ch, arrCC
-        })
-        // console.log(newCarr)
-
-        //赋值
-        that.setData({
-          sheng: ah,
-          shi: bh,
-          qu: ch
-        })
-
-      }
-    }
-    wx.request(opt);
-  },
-
 
   //获得地图
   getMyMapLocation(e) {
@@ -579,10 +470,11 @@ Page({
       method: 'GET',
       dataType: 'json',
       success(res) {
-        //  console.log(res);
+        //console.log(res);
         that.setData({
           addressDes: res.data.result.address
         })
+
       },
       fail(res) {
         //console.log(res);
@@ -640,7 +532,7 @@ Page({
     // transit公车接口参数不一样
     var _url = "";
     if (trafficWay == "transit") {
-      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&LEAST_TIME&output=json&callback=cb&key=" + mapKey + "";
+      _url = "https://apis.map.qq.com/ws/direction/v1/transit/?&from=" + fromMap + "&to=" + toMap + "&LEAST_TIME&output=json&key=" + mapKey + "";
      
     } else {
       _url = "https://apis.map.qq.com/ws/direction/v1/"+trafficWay+"/?&from=" + fromMap + "&to=" + toMap + "&key=" + mapKey + "";
@@ -816,6 +708,7 @@ Page({
           latitude: res.latitude,
           longitude: res.longitude,
         })
+
         fromMap = that.data.latitude + ',' + that.data.longitude, //始点
         toMap = that.data.tolatitude + ',' + that.data.tolongitude; //终点
         if (that.data.tolatitude == ""  || that.data.tolongitude == ""){
@@ -961,6 +854,194 @@ Page({
   },
 
 
+  //选择城市bindChangeCitys
+  bindChangeCitys(e) {
+    let that = this;
+    if (e != undefined) {
+      let val = e.detail.value;
+      // console.log(val)
+
+      that.setData({
+        citysArr: val,
+        aVal: val["0"],
+        bVal: val["1"],
+        cVal: val["2"],
+      })
+
+      that.getCitys(); //切换获取地址
+
+    }
+  },
+
+  //选择城市完毕后
+  bindpickendCitys(e) {
+    let that = this;
+    if (e.type == "pickend") {
+      that.setData({
+        pickType: true
+      })
+    }
+  },
+
+  //切换获取地址
+  getCitys(e) {
+    var that = this,
+      mapKey = that.data.mapKey;
+    //  获取全部行政区划数据
+    var _url = "";
+    _url = "https://apis.map.qq.com/ws/district/v1/list?key=" + mapKey + "";
+    var opt = {
+      url: _url,
+      method: 'GET',
+      dataType: 'json',
+      success(res) {
+        var ret = res.data;
+        //  console.log(res);
+        if (ret.status != 0) {
+          return
+        }
+
+        var aArr = [], bArr = [], cArr = [], minA, maxA, minB, maxB;
+        aArr = ret.result[0]
+        bArr = ret.result[1]
+        cArr = ret.result[2]
+
+        var ah = [], bh = [], ch = [];
+        var aVal = that.data.aVal,
+          bVal = that.data.bVal,
+          cVal = that.data.cVal;
+
+        // 省份
+        aArr.forEach(function (a, i) {
+          ah.push(a.fullname)
+          return ah
+        })
+
+
+        //市
+        minA = aArr[aVal].cidx["0"]
+        maxA = aArr[aVal].cidx["1"]
+
+        var arrBB = [];
+        const newBarr = bArr.map(function (b, i) {
+          if (i >= minA && i <= maxA) {
+            arrBB.push(b)
+          }
+          arrBB.forEach(function (bb) {
+            bh.push(bb.fullname)
+          })
+          bh = Array.from(new Set(bh))
+          return bh, arrBB
+        })
+        // console.log(newBarr)
+
+        // 区
+        if (arrBB[bVal].hasOwnProperty('cidx')) {
+          //console.log(arrBB[bVal])
+          minB = arrBB[bVal].cidx["0"]
+          maxB = arrBB[bVal].cidx["1"]
+        }
+
+        var arrCC = [];
+        const newCarr = cArr.map(function (c, i) {
+          if (i >= minB && i <= maxB) {
+            arrCC.push(c)
+          }
+          arrCC.forEach(function (cc) {
+            ch.push(cc.fullname)
+          })
+          ch = Array.from(new Set(ch))
+
+          return ch, arrCC
+        })
+        // console.log(newCarr)
+
+        if (ch[cVal] == undefined) {
+          ch[cVal] = ""
+        }
+        var slectAdr = ""
+        slectAdr = ah[aVal] + bh[bVal] + ch[cVal];
+
+        //赋值
+        that.setData({
+          sheng: ah,
+          shi: bh,
+          qu: ch,
+          slectAdr: slectAdr
+        })
+
+        // console.log(slectAdr)
+
+        that.getAdrNalyze();
+
+      }
+    }
+    wx.request(opt);
+  },
+
+  //地址解析（地址-坐标）
+  getAdrNalyze(e) {
+    let that = this,
+      mapKey = that.data.mapKey;
+    //接口
+    var _url = "";
+    _url = "https://apis.map.qq.com/ws/geocoder/v1/?address=" + that.data.slectAdr + "&key=" + mapKey + "";
+    var opt = {
+      url: _url,
+      method: 'GET',
+      dataType: 'json',
+      success(res) {
+        // console.log(res)
+        let ret = res.data;
+        if (ret.status != 0) {
+          return
+        }
+        var lat, lng, poiMks = [];
+        if (that.data.pickType) {
+          lat = ret.result.location.lat
+          lng = ret.result.location.lng
+
+          poiMks = [{
+            id: "0000",
+            latitude: lat,
+            longitude: lng,
+            iconPath: "https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/map-ico3.png",
+            width: 30,
+            height: 30,
+            callout: {
+              'display': 'ALWAYS', 'fontSize': '24rpx', 'content': that.data.slectAdr,
+              'padding': '6rpx', 'boxShadow': '0 0 5rpx #333', 'borderRadius': '2rpx'
+            }
+          }]
+
+
+          that.setData({
+            tolatitude: lat,
+            tolongitude: lng,
+            pioIsShow: true,
+            adrIsShow: false,
+            markers: that.data.originMarkers.concat(poiMks),
+            polyline: []
+          })
+
+          that.getAddreeInfo(); //目的地地址信息
+          that.linePopp(); //出行-路线动画
+
+          //pio动画
+          that.pioAdrPopp();
+          that.setData({
+            isPioAdrPopping: true
+          })
+
+
+        }
+      }
+    }
+    wx.request(opt);
+
+  },
+
+
   //转换单位：距离,时间
   transformUnit(t, d) {
     var that = this,
@@ -995,13 +1076,55 @@ Page({
     if (d < 1000) {
       distance = d + "米"
     } else if (d > 1000) {
-      distance = (Math.round(d / 100) / 10).toFixed(1) + "公里"
+      var dis ="";
+      dis = (Math.round(d / 100) / 10).toFixed(1);
+      if (dis >= 1000) {
+        that.setData({
+          scale: 5
+        })
+      } else if (dis >= 700) {
+        that.setData({
+          scale: 6
+        })
+      } else if (dis >= 500) {
+        that.setData({
+          scale: 7
+        })
+      } else if (dis >= 300) {
+        that.setData({
+          scale: 8
+        })
+      } else if (dis >= 200) {
+        that.setData({
+          scale: 9
+        })
+      } else if (dis >= 100) {
+        that.setData({
+          scale: 10
+        })
+      }else if (dis >= 20) {
+        that.setData({
+          scale: 11
+        })
+      }else if (dis >= 10) {
+        that.setData({
+          scale: 12
+        })
+      }else{
+        that.setData({
+          scale: 13
+        })
+      }
+
+      distance = dis + "公里"
     }
 
     that.setData({
       duration: duration,
       distance: distance
     })
+
+    
 
     return duration, distance;
   },
@@ -1059,7 +1182,9 @@ Page({
       key: that.data.mapKey
     });
 
-    that.getCitys()
+    that.getCitys(); //选择城市bindChangeCitys
+
+    // that.getAdrNalyze();  //地址解析（地址-坐标）
   },
 
   /**
