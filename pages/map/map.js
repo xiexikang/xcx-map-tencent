@@ -110,8 +110,10 @@ Page({
     slectAdr:" ",  //选中的地址
     pickType:false,  //控制城市切换完否
 
+  
   },
 
+  
   //获得地图
   getMyMapLocation(e) {
     let that = this;

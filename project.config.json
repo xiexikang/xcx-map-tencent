@@ -12,7 +12,7 @@
 		"autoAudits": false
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.4.3",
+	"libVersion": "2.5.0",
 	"appid": "wx08468e9ff46ce5b3",
 	"projectname": "map%E7%BB%84%E4%BB%B6-%E8%85%BE%E8%AE%AF%E5%9C%B0%E5%9B%BESDK",
 	"debugOptions": {
@@ -42,7 +42,7 @@
 				{
 					"id": -1,
 					"name": "index",
-					"pathName": "pages/index/index" 
+					"pathName": "pages/index/index"
 				}
 			]
 		}
