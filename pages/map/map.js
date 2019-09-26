@@ -267,7 +267,7 @@ Page({
     let that = this,
       mapKey = that.data.mapKey,
       keyword = that.data.classifyClassName,
-      currentCity = that.data.currentCity,
+      currentCity ='天河区',
       lat = that.data.latitude,
       lng = that.data.longitude,
       v = e.detail.value;

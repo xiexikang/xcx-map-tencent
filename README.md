@@ -12,13 +12,16 @@
 - 功能4：poi点[地图上可见的建筑点]；
 - 功能5：搜索出的地址列表[地址名，路程距离，花费时间等]；
 - 功能6：具体行走的路线信息的过程（这个有点复杂-[注意看文档](https://lbs.qq.com/webservice_v1/guide-road.html)）；
-- 功能7：城市的选择 [注意看文档](https://lbs.qq.com/webservice_v1/guide-region.html) <br>  
+- 功能7：城市的选择 [注意看文档](https://lbs.qq.com/webservice_v1/guide-region.html) ；
+省市区可以参考本人此案例 [https://github.com/xiexikang/xcx-citySelect][8]<br> 
+
 ![![地图默认情况][1]][2] <br>  
 ![关键字搜索][3] <br>  
 ![关键字分类、地址列表][4] <br>  
 ![pio点][5] <br>  
 ![具体行走的路线信息的过程][6] <br>  
 ![城市选择][7] <br>  
+
 
   [1]: https://img-blog.csdnimg.cn/20190102153648257.png
   [2]: https://img-blog.csdnimg.cn/20190102153648257.png
@@ -27,3 +30,4 @@
   [5]: https://img-blog.csdnimg.cn/20190102153845166.png
   [6]: https://img-blog.csdnimg.cn/20190103170636968.png
   [7]: https://img-blog.csdnimg.cn/2019011111263548.png
+  [8]: https://github.com/xiexikang/xcx-citySelect
