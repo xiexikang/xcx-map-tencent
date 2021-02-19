@@ -1,0 +1,99 @@
+<!--pages/map/map.wxml-->
+
+<!-- 地图组件 -->
+<map id="myMap" markers="{{markers}}"   latitude="{{latitude}}" longitude="{{longitude}}" 
+scale="{{scale}}" show-location  circles="{{circles}}"  polyline="{{polyline}}"  bindmarkertap='bindmarkertap'   bindpoitap="bindpoitap" 
+ subkey="{{mapKey}}" >
+</map>
+
+
+<!-- 搜索模块 -->
+<view class='the-search'>
+  <form bindsubmit="searchNearby" >
+    <view class='ser-con'>
+        <input class='inp' type='text' placeholder='搜地点' value='{{keysValue}}' name='keysValue' bindinput="bindSearchInput" bindconfirm='searchNearby' />
+        <button class='btn'  form-type="submit">搜索</button>
+    </view>
+  </form>
+  <view class='ser-classify'>
+    <block wx:for="{{classifyClassArr}}" wx:for-item="v" wx:for-index="i" wx:key="k">
+      <label class='lab' data-id="{{i}}" bindtap='chooseClassify'>{{v.name}}</label>
+    </block>
+  </view>
+  <view class='ser-list'>
+    <block wx:for="{{searchTipsArr}}" wx:for-item="v" wx:key="k">
+      <view class='li' data-lat='{{v.location.lat}}' data-lng="{{v.location.lng}}" data-title="{{v.title}}" data-des="{{v.address}}" data-duration="{{v.duration}}" data-distance="{{v.distance}}"  bindtap='chooseSerTip'>{{v.title}}</view>
+    </block>
+  </view>
+</view>
+
+<!-- 省市区 -->
+<view class='the-citys'>
+  <view class='city-thead'>选择城市：</view>
+  <picker-view class='pkv' indicator-style="height: 80rpx;" value="{{citysArr}}" bindchange="bindChangeCitys" bindpickend="bindpickendCitys">
+      <picker-view-column>
+        <view class='cti' wx:for="{{sheng}}" wx:for-item="v0" wx:key='k0'>{{v0}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class='cti' wx:for="{{shi}}" wx:for-item="v1" wx:key='k1'>{{v1}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class='cti' wx:for="{{qu}}" wx:for-item="v2" wx:key='k2'>{{v2}}</view>
+      </picker-view-column>
+  </picker-view>
+</view>
+
+
+<!-- 路线规划 -->
+<view class='line-planning'  animation="{{lineAnimPlus}}" >
+  <view class='sel-way'>
+    <picker class='picker' bindchange="selGoWay" value="{{goWayIndex}}" range="{{goWayArr}}" range-key='title'>
+      <view class="ti">选择出行方式：<label class='mm'>{{goWayArr[goWayIndex].title}}</label></view>
+    </picker>
+  </view>
+  <button type='button' class='btn'  bindtap="linePlanning">路线规划</button>
+</view>
+
+<!-- 具体路线 -->
+<view class='the-routes' wx-if="{{isShowRoutes}}">
+  <view class='th'>具体路线:</view>
+  <view class='lus'>{{routesLines}}</view>
+</view>
+
+<!-- 搜索出的地址列表： -->
+<view class='address-container' wx:if="{{adrIsShow}}">
+  <view class='address-thead'>搜索出的地址列表：</view>
+  <view class='address-list' >
+    <block wx:for="{{addressArr}}" wx:for-item="v" wx:key="k">
+      <view class='mod' data-lat="{{v.latitude}}" data-lng="{{v.longitude}}" data-title="{{v.title}}" data-des="{{v.address}}" data-duration="{{v.duration}}" data-distance="{{v.distance}}"  bindtap='chooseSerTip'>
+        <view class='th'>{{v.title}}</view>
+        <view class='des'>{{v.address}}</view>
+        <label class='dura'>{{v.duration}}</label>
+        <label class='dist'>{{v.distance}}</label>
+      </view>
+    </block>
+  </view>
+</view>
+
+<!--  -->
+<view class='separate'></view>
+
+<!-- pio建筑选中的地址： -->
+<view class='pio-address-info' animation="{{pioAdrAnimPlus}}" wx:if="{{pioIsShow}}">
+  <view class='in'>
+    <view class='tio'>{{addressTitle}}</view>
+    <view class='tcon'>
+      <view class='des'>{{addressDes}}</view>
+      <view class='bot'>
+        <label class='dist'>{{distance}}</label>
+         <i class="i"></i>
+        <label class='dura'>{{duration}}</label>
+      </view>
+    </view>
+    <view class='to-hear' bindtap='bindPioTohear'>
+      <icon class='i' style="background-image:url('https://xcx.quan5fen.com/Public/xcx-hitui/image/imgs-jyh/i-car.png')"></icon>
+      <label class='ti'>到这去</label>
+    </view>
+  </view>
+</view>
+
