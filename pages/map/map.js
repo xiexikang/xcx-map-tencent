@@ -9,7 +9,7 @@ Page({
    * 页面的初始数据
    */
   data: {
-    mapKey: "MKWBZ-IH53W-NGSRB-OTOS7-2SW52-AHBOI",  //地图的key
+    mapKey: "",  //地图的key 换成自己的腾讯地图的key
     scale: 14,
     markers: [],  //地图参数
     circles: [],  //区域
